@@ -77,6 +77,14 @@ guardrail4j:
 
 ## Running locally
 
+Build and run all tests from the repository root:
+
+```bash
+mvn clean verify
+```
+
+For a faster test-only run:
+
 ```bash
 mvn clean test
 ```
