@@ -1,0 +1,18 @@
+guardrail4j:
+  enabled: true
+  defaultAction: WARN
+  monthlyBudgetUsd: 50
+  dailyBudgetUsd: 5
+  perUserDailyBudgetUsd: 1
+  perTenantMonthlyBudgetUsd: 15
+  fallbackModel: claude-3-5-haiku
+  pricing:
+    openai:gpt-4o-mini:
+      inputPer1MUsd: 0.15
+      outputPer1MUsd: 0.60
+    anthropic:claude-3-5-haiku:
+      inputPer1MUsd: 0.25
+      outputPer1MUsd: 1.25
+
+server:
+  port: 8080
