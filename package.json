@@ -1,0 +1,11 @@
+{
+  "name": "guardrail4j-demo-capture",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "demo:capture": "node scripts/capture-demo.mjs"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.59.1"
+  }
+}

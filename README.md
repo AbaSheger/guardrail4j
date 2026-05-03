@@ -264,6 +264,20 @@ Once a user's daily budget is exhausted, the next call returns HTTP 500 with `Gu
 
 ---
 
+## Demo Screenshot
+
+The demo flow can be captured with Playwright after starting the demo app:
+
+```bash
+npm run demo:capture
+```
+
+This writes `docs/demo-summary.png`.
+
+![Guardrail4J demo summary](docs/demo-summary.png)
+
+---
+
 ## Current Limitations
 
 Guardrail4J is an early MVP. Be aware of these constraints before using it in production:
