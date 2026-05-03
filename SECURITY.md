@@ -6,7 +6,7 @@
 
 If you discover a security issue, email the maintainer directly:
 
-**merebanglo@gmail.com**
+**antetibo@gmail.com**
 
 Include:
 - A description of the vulnerability
