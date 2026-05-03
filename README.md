@@ -121,6 +121,29 @@ guardrail4j:
 
 ---
 
+## Architecture
+
+```mermaid
+flowchart LR
+    App["Spring Boot app"] --> Guarded["@LLMGuarded method"]
+    Guarded --> Interceptor["GuardrailInterceptor"]
+    Interceptor --> Spel["SpEL identity resolver"]
+    Interceptor --> Cost["CostEstimator"]
+    Cost --> Decision["GuardrailDecisionEngine"]
+    Decision --> Store["InMemoryUsageStore"]
+    Decision --> Allow{"Budget OK?"}
+    Allow -->|Yes| Proceed["Proceed with method call"]
+    Allow -->|No| Action["WARN / BLOCK / FALLBACK"]
+    Proceed --> Record["Save UsageRecord"]
+    Record --> Store
+    Store --> Usage["GET /guardrail4j/usage"]
+    Store --> Summary["GET /guardrail4j/usage/summary"]
+```
+
+The starter stays outside the LLM provider SDK. It wraps your annotated method, estimates the call cost, checks configured budgets, records allowed usage, and exposes usage data through lightweight monitoring endpoints.
+
+---
+
 ## Annotation Reference
 
 | Field | Default | Description |
