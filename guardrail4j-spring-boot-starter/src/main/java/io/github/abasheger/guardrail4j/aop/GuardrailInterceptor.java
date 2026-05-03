@@ -22,6 +22,8 @@ import org.slf4j.LoggerFactory;
 public class GuardrailInterceptor {
 
     private static final Logger log = LoggerFactory.getLogger(GuardrailInterceptor.class);
+    private static final String BLOCK_MESSAGE =
+            "Guardrail4J blocked this LLM call due to budget limits";
 
     private final UsageStore usageStore;
     private final CostEstimator costEstimator;
@@ -55,23 +57,14 @@ public class GuardrailInterceptor {
         GuardrailDecision decision = decisionEngine.decide(guarded, estimatedCost, userId, tenantId);
 
         if (decision == GuardrailDecision.BLOCK) {
-            throw new IllegalStateException("Guardrail4J blocked this LLM call due to budget limits");
+            throw new IllegalStateException(BLOCK_MESSAGE);
         }
-
         if (decision == GuardrailDecision.WARN) {
-            log.warn("Guardrail4J budget threshold exceeded for method {}", joinPoint.getSignature().toShortString());
+            log.warn("Guardrail4J budget threshold exceeded for method {}",
+                    joinPoint.getSignature().toShortString());
         }
-
         if (decision == GuardrailDecision.FALLBACK) {
-            String fallbackModel = guarded.fallbackModel().isBlank()
-                    ? properties.getFallbackModel()
-                    : guarded.fallbackModel();
-            log.warn(
-                    "Guardrail4J fallback decision for method {}. Suggested fallback model: {}. "
-                            + "Provider/model switching is not implemented in the MVP yet.",
-                    joinPoint.getSignature().toShortString(),
-                    fallbackModel
-            );
+            handleFallback(joinPoint, guarded);
         }
 
         Object result = joinPoint.proceed();
@@ -87,5 +80,17 @@ public class GuardrailInterceptor {
                 Instant.now()
         ));
         return result;
+    }
+
+    private void handleFallback(ProceedingJoinPoint joinPoint, LLMGuarded guarded) {
+        String fallbackModel = guarded.fallbackModel().isBlank()
+                ? properties.getFallbackModel()
+                : guarded.fallbackModel();
+        log.warn(
+                "Guardrail4J fallback for method {}. Suggested model: {}."
+                        + " Model switching is not implemented in the MVP yet.",
+                joinPoint.getSignature().toShortString(),
+                fallbackModel
+        );
     }
 }

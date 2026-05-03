@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/guardrail4j")
 public class GuardrailController {
+
     private final UsageStore usageStore;
     private final Guardrail4jProperties properties;
 
@@ -21,10 +22,16 @@ public class GuardrailController {
     }
 
     @GetMapping("/usage")
-    public List<UsageRecord> usage() { return usageStore.findAll(); }
+    public List<UsageRecord> usage() {
+        return usageStore.findAll();
+    }
 
     @GetMapping("/health")
     public Map<String, Object> health() {
-        return Map.of("status", "UP", "enabled", properties.isEnabled(), "records", usageStore.findAll().size());
+        return Map.of(
+                "status", "UP",
+                "enabled", properties.isEnabled(),
+                "records", usageStore.findAll().size()
+        );
     }
 }

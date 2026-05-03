@@ -16,10 +16,6 @@ public class SpelExpressionResolver {
     private final ExpressionParser parser = new SpelExpressionParser();
     private final ParameterNameDiscoverer paramNameDiscoverer = new DefaultParameterNameDiscoverer();
 
-    /**
-     * Resolves {@code value} against the method's arguments if it starts with {@code #};
-     * otherwise returns it unchanged. Falls back to the raw value on any resolution error.
-     */
     public String resolve(String value, Method method, Object[] args) {
         if (!value.startsWith("#")) {
             return value;
@@ -38,7 +34,8 @@ public class SpelExpressionResolver {
             Object result = parser.parseExpression(value).getValue(context);
             return result != null ? result.toString() : value;
         } catch (Exception e) {
-            log.warn("Guardrail4J SpEL resolution failed for '{}', using raw value. Cause: {}", value, e.getMessage());
+            log.warn("Guardrail4J SpEL resolution failed for '{}', using raw value. Cause: {}",
+                    value, e.getMessage());
             return value;
         }
     }
