@@ -6,12 +6,15 @@ import io.github.abasheger.guardrail4j.cost.CostEstimator;
 import io.github.abasheger.guardrail4j.decision.GuardrailDecisionEngine;
 import io.github.abasheger.guardrail4j.model.GuardrailDecision;
 import io.github.abasheger.guardrail4j.model.UsageRecord;
+import io.github.abasheger.guardrail4j.spel.SpelExpressionResolver;
 import io.github.abasheger.guardrail4j.store.UsageStore;
+import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.time.Instant;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.reflect.MethodSignature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,23 +27,32 @@ public class GuardrailInterceptor {
     private final CostEstimator costEstimator;
     private final GuardrailDecisionEngine decisionEngine;
     private final Guardrail4jProperties properties;
+    private final SpelExpressionResolver spelResolver;
 
     public GuardrailInterceptor(
             UsageStore usageStore,
             CostEstimator costEstimator,
             GuardrailDecisionEngine decisionEngine,
-            Guardrail4jProperties properties
+            Guardrail4jProperties properties,
+            SpelExpressionResolver spelResolver
     ) {
         this.usageStore = usageStore;
         this.costEstimator = costEstimator;
         this.decisionEngine = decisionEngine;
         this.properties = properties;
+        this.spelResolver = spelResolver;
     }
 
     @Around("@annotation(guarded)")
     public Object around(ProceedingJoinPoint joinPoint, LLMGuarded guarded) throws Throwable {
+        Method method = ((MethodSignature) joinPoint.getSignature()).getMethod();
+        Object[] args = joinPoint.getArgs();
+
+        String userId = spelResolver.resolve(guarded.userId(), method, args);
+        String tenantId = spelResolver.resolve(guarded.tenantId(), method, args);
+
         BigDecimal estimatedCost = costEstimator.estimate(guarded);
-        GuardrailDecision decision = decisionEngine.decide(guarded, estimatedCost);
+        GuardrailDecision decision = decisionEngine.decide(guarded, estimatedCost, userId, tenantId);
 
         if (decision == GuardrailDecision.BLOCK) {
             throw new IllegalStateException("Guardrail4J blocked this LLM call due to budget limits");
@@ -66,8 +78,8 @@ public class GuardrailInterceptor {
         usageStore.save(new UsageRecord(
                 guarded.provider(),
                 guarded.model(),
-                guarded.userId(),
-                guarded.tenantId(),
+                userId,
+                tenantId,
                 guarded.feature(),
                 guarded.estimatedInputTokens(),
                 guarded.estimatedOutputTokens(),

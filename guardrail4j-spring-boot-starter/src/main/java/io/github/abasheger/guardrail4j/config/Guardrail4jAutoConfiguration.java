@@ -4,6 +4,7 @@ import io.github.abasheger.guardrail4j.aop.GuardrailInterceptor;
 import io.github.abasheger.guardrail4j.controller.GuardrailController;
 import io.github.abasheger.guardrail4j.cost.CostEstimator;
 import io.github.abasheger.guardrail4j.decision.GuardrailDecisionEngine;
+import io.github.abasheger.guardrail4j.spel.SpelExpressionResolver;
 import io.github.abasheger.guardrail4j.store.InMemoryUsageStore;
 import io.github.abasheger.guardrail4j.store.UsageStore;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -38,13 +39,20 @@ public class Guardrail4jAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
+    public SpelExpressionResolver spelExpressionResolver() {
+        return new SpelExpressionResolver();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
     public GuardrailInterceptor interceptor(
             UsageStore usageStore,
             CostEstimator costEstimator,
             GuardrailDecisionEngine decisionEngine,
-            Guardrail4jProperties properties
+            Guardrail4jProperties properties,
+            SpelExpressionResolver spelExpressionResolver
     ) {
-        return new GuardrailInterceptor(usageStore, costEstimator, decisionEngine, properties);
+        return new GuardrailInterceptor(usageStore, costEstimator, decisionEngine, properties, spelExpressionResolver);
     }
 
     @Bean

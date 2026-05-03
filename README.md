@@ -13,8 +13,6 @@ Guardrail4J is an early MVP scaffold. It is useful for experimenting with annota
 Important limitations:
 
 - Usage is stored in memory and is lost when the app restarts.
-- `userId` and `tenantId` in `@LLMGuarded` are static annotation metadata for now.
-- Dynamic user or tenant extraction from method arguments, request headers, or Spring Security is planned.
 - `FALLBACK` currently produces a decision/log signal only. It does not yet switch provider or model automatically.
 - No real OpenAI, Anthropic, or other provider calls are made by the starter.
 
@@ -54,6 +52,26 @@ public String summarize(String text) {
     // your existing LLM call
 }
 ```
+
+### Dynamic identity with SpEL
+
+Set `userId` or `tenantId` to a Spring Expression starting with `#` to resolve values from the method's arguments at runtime:
+
+```java
+@LLMGuarded(
+    provider = "openai",
+    model = "gpt-4o-mini",
+    userId = "#userId",
+    tenantId = "#tenantId",
+    feature = "document-summary",
+    onViolation = GuardrailAction.BLOCK
+)
+public String summarizeDocument(String text, String userId, String tenantId) {
+    return fakeLlmService.summarize(text);
+}
+```
+
+Positional references (`#p0`, `#p1`, …) also work when parameter names are unavailable. If the expression cannot be resolved, the raw string is used as a fallback.
 
 ## YAML config
 
@@ -105,7 +123,7 @@ curl -X POST http://localhost:8080/api/summarize \
 
 ## Roadmap
 
-- Dynamic identity resolution using SpEL, request headers, or Spring Security
+- Identity resolution from request headers or Spring Security
 - Durable storage with PostgreSQL or Redis
 - Provider adapters and richer model catalogs
 - Real fallback execution strategy

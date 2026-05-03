@@ -19,13 +19,17 @@ public class GuardrailDecisionEngine {
     }
 
     public GuardrailDecision decide(LLMGuarded guarded, BigDecimal estimatedCost) {
+        return decide(guarded, estimatedCost, guarded.userId(), guarded.tenantId());
+    }
+
+    public GuardrailDecision decide(LLMGuarded guarded, BigDecimal estimatedCost, String userId, String tenantId) {
         if (!properties.isEnabled()) return GuardrailDecision.ALLOW;
         LocalDate today = LocalDate.now();
         YearMonth month = YearMonth.now();
         boolean exceeded = usageStore.sumByDay(today).add(estimatedCost).compareTo(properties.getDailyBudgetUsd()) > 0
                 || usageStore.sumByMonth(month).add(estimatedCost).compareTo(properties.getMonthlyBudgetUsd()) > 0
-                || usageStore.sumByUserByDay(guarded.userId(), today).add(estimatedCost).compareTo(properties.getPerUserDailyBudgetUsd()) > 0
-                || usageStore.sumByTenantByMonth(guarded.tenantId(), month).add(estimatedCost).compareTo(properties.getPerTenantMonthlyBudgetUsd()) > 0;
+                || usageStore.sumByUserByDay(userId, today).add(estimatedCost).compareTo(properties.getPerUserDailyBudgetUsd()) > 0
+                || usageStore.sumByTenantByMonth(tenantId, month).add(estimatedCost).compareTo(properties.getPerTenantMonthlyBudgetUsd()) > 0;
         if (!exceeded) return GuardrailDecision.ALLOW;
         GuardrailAction action = guarded.onViolation() != GuardrailAction.WARN ? guarded.onViolation() : properties.getDefaultAction();
         return switch (action) {
