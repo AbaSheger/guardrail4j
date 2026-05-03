@@ -8,6 +8,10 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties(prefix = "guardrail4j")
 public class Guardrail4jProperties {
+
+    private static final String MODEL_OPENAI_GPT4O_MINI = "openai:gpt-4o-mini";
+    private static final String MODEL_ANTHROPIC_CLAUDE_3_5_HAIKU = "anthropic:claude-3-5-haiku";
+
     private boolean enabled = true;
     private GuardrailAction defaultAction = GuardrailAction.WARN;
     private BigDecimal monthlyBudgetUsd = new BigDecimal("100.00");
@@ -18,26 +22,75 @@ public class Guardrail4jProperties {
     private Map<String, ModelPrice> pricing = new HashMap<>();
 
     public Guardrail4jProperties() {
-        pricing.put("openai:gpt-4o-mini", new ModelPrice(new BigDecimal("0.15"), new BigDecimal("0.60")));
-        pricing.put("anthropic:claude-3-5-haiku", new ModelPrice(new BigDecimal("0.25"), new BigDecimal("1.25")));
+        pricing.put(MODEL_OPENAI_GPT4O_MINI,
+                new ModelPrice(new BigDecimal("0.15"), new BigDecimal("0.60")));
+        pricing.put(MODEL_ANTHROPIC_CLAUDE_3_5_HAIKU,
+                new ModelPrice(new BigDecimal("0.25"), new BigDecimal("1.25")));
     }
 
     public record ModelPrice(BigDecimal inputPer1MUsd, BigDecimal outputPer1MUsd) {}
-    // getters/setters
-    public boolean isEnabled() { return enabled; }
-    public void setEnabled(boolean enabled) { this.enabled = enabled; }
-    public GuardrailAction getDefaultAction() { return defaultAction; }
-    public void setDefaultAction(GuardrailAction defaultAction) { this.defaultAction = defaultAction; }
-    public BigDecimal getMonthlyBudgetUsd() { return monthlyBudgetUsd; }
-    public void setMonthlyBudgetUsd(BigDecimal monthlyBudgetUsd) { this.monthlyBudgetUsd = monthlyBudgetUsd; }
-    public BigDecimal getDailyBudgetUsd() { return dailyBudgetUsd; }
-    public void setDailyBudgetUsd(BigDecimal dailyBudgetUsd) { this.dailyBudgetUsd = dailyBudgetUsd; }
-    public BigDecimal getPerUserDailyBudgetUsd() { return perUserDailyBudgetUsd; }
-    public void setPerUserDailyBudgetUsd(BigDecimal perUserDailyBudgetUsd) { this.perUserDailyBudgetUsd = perUserDailyBudgetUsd; }
-    public BigDecimal getPerTenantMonthlyBudgetUsd() { return perTenantMonthlyBudgetUsd; }
-    public void setPerTenantMonthlyBudgetUsd(BigDecimal perTenantMonthlyBudgetUsd) { this.perTenantMonthlyBudgetUsd = perTenantMonthlyBudgetUsd; }
-    public String getFallbackModel() { return fallbackModel; }
-    public void setFallbackModel(String fallbackModel) { this.fallbackModel = fallbackModel; }
-    public Map<String, ModelPrice> getPricing() { return pricing; }
-    public void setPricing(Map<String, ModelPrice> pricing) { this.pricing = pricing; }
+
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
+
+    public GuardrailAction getDefaultAction() {
+        return defaultAction;
+    }
+
+    public void setDefaultAction(GuardrailAction defaultAction) {
+        this.defaultAction = defaultAction;
+    }
+
+    public BigDecimal getMonthlyBudgetUsd() {
+        return monthlyBudgetUsd;
+    }
+
+    public void setMonthlyBudgetUsd(BigDecimal monthlyBudgetUsd) {
+        this.monthlyBudgetUsd = monthlyBudgetUsd;
+    }
+
+    public BigDecimal getDailyBudgetUsd() {
+        return dailyBudgetUsd;
+    }
+
+    public void setDailyBudgetUsd(BigDecimal dailyBudgetUsd) {
+        this.dailyBudgetUsd = dailyBudgetUsd;
+    }
+
+    public BigDecimal getPerUserDailyBudgetUsd() {
+        return perUserDailyBudgetUsd;
+    }
+
+    public void setPerUserDailyBudgetUsd(BigDecimal perUserDailyBudgetUsd) {
+        this.perUserDailyBudgetUsd = perUserDailyBudgetUsd;
+    }
+
+    public BigDecimal getPerTenantMonthlyBudgetUsd() {
+        return perTenantMonthlyBudgetUsd;
+    }
+
+    public void setPerTenantMonthlyBudgetUsd(BigDecimal perTenantMonthlyBudgetUsd) {
+        this.perTenantMonthlyBudgetUsd = perTenantMonthlyBudgetUsd;
+    }
+
+    public String getFallbackModel() {
+        return fallbackModel;
+    }
+
+    public void setFallbackModel(String fallbackModel) {
+        this.fallbackModel = fallbackModel;
+    }
+
+    public Map<String, ModelPrice> getPricing() {
+        return pricing;
+    }
+
+    public void setPricing(Map<String, ModelPrice> pricing) {
+        this.pricing = pricing;
+    }
 }

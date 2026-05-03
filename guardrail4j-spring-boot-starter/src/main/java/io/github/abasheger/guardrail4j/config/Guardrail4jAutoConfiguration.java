@@ -16,7 +16,12 @@ import org.springframework.context.annotation.Bean;
 
 @AutoConfiguration
 @EnableConfigurationProperties(Guardrail4jProperties.class)
-@ConditionalOnProperty(prefix = "guardrail4j", name = "enabled", havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(
+        prefix = "guardrail4j",
+        name = "enabled",
+        havingValue = "true",
+        matchIfMissing = true
+)
 public class Guardrail4jAutoConfiguration {
 
     @Bean
@@ -33,7 +38,10 @@ public class Guardrail4jAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public GuardrailDecisionEngine decisionEngine(UsageStore usageStore, Guardrail4jProperties properties) {
+    public GuardrailDecisionEngine decisionEngine(
+            UsageStore usageStore,
+            Guardrail4jProperties properties
+    ) {
         return new GuardrailDecisionEngine(usageStore, properties);
     }
 
@@ -52,13 +60,22 @@ public class Guardrail4jAutoConfiguration {
             Guardrail4jProperties properties,
             SpelExpressionResolver spelExpressionResolver
     ) {
-        return new GuardrailInterceptor(usageStore, costEstimator, decisionEngine, properties, spelExpressionResolver);
+        return new GuardrailInterceptor(
+                usageStore,
+                costEstimator,
+                decisionEngine,
+                properties,
+                spelExpressionResolver
+        );
     }
 
     @Bean
     @ConditionalOnWebApplication
     @ConditionalOnMissingBean
-    public GuardrailController guardrailController(UsageStore usageStore, Guardrail4jProperties properties) {
+    public GuardrailController guardrailController(
+            UsageStore usageStore,
+            Guardrail4jProperties properties
+    ) {
         return new GuardrailController(usageStore, properties);
     }
 }

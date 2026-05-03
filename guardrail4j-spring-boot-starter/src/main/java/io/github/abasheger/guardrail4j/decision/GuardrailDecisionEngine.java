@@ -10,6 +10,7 @@ import java.time.LocalDate;
 import java.time.YearMonth;
 
 public class GuardrailDecisionEngine {
+
     private final UsageStore usageStore;
     private final Guardrail4jProperties properties;
 
@@ -22,20 +23,46 @@ public class GuardrailDecisionEngine {
         return decide(guarded, estimatedCost, guarded.userId(), guarded.tenantId());
     }
 
-    public GuardrailDecision decide(LLMGuarded guarded, BigDecimal estimatedCost, String userId, String tenantId) {
-        if (!properties.isEnabled()) return GuardrailDecision.ALLOW;
+    public GuardrailDecision decide(
+            LLMGuarded guarded,
+            BigDecimal estimatedCost,
+            String userId,
+            String tenantId
+    ) {
+        if (!properties.isEnabled()) {
+            return GuardrailDecision.ALLOW;
+        }
         LocalDate today = LocalDate.now();
         YearMonth month = YearMonth.now();
-        boolean exceeded = usageStore.sumByDay(today).add(estimatedCost).compareTo(properties.getDailyBudgetUsd()) > 0
-                || usageStore.sumByMonth(month).add(estimatedCost).compareTo(properties.getMonthlyBudgetUsd()) > 0
-                || usageStore.sumByUserByDay(userId, today).add(estimatedCost).compareTo(properties.getPerUserDailyBudgetUsd()) > 0
-                || usageStore.sumByTenantByMonth(tenantId, month).add(estimatedCost).compareTo(properties.getPerTenantMonthlyBudgetUsd()) > 0;
-        if (!exceeded) return GuardrailDecision.ALLOW;
-        GuardrailAction action = guarded.onViolation() != GuardrailAction.WARN ? guarded.onViolation() : properties.getDefaultAction();
+        if (!isBudgetExceeded(estimatedCost, userId, tenantId, today, month)) {
+            return GuardrailDecision.ALLOW;
+        }
+        GuardrailAction annotationAction = guarded.onViolation();
+        GuardrailAction action = annotationAction != GuardrailAction.WARN
+                ? annotationAction
+                : properties.getDefaultAction();
         return switch (action) {
             case WARN -> GuardrailDecision.WARN;
             case BLOCK -> GuardrailDecision.BLOCK;
             case FALLBACK -> GuardrailDecision.FALLBACK;
         };
+    }
+
+    private boolean isBudgetExceeded(
+            BigDecimal cost,
+            String userId,
+            String tenantId,
+            LocalDate today,
+            YearMonth month
+    ) {
+        boolean dailyExceeded = usageStore.sumByDay(today).add(cost)
+                .compareTo(properties.getDailyBudgetUsd()) > 0;
+        boolean monthlyExceeded = usageStore.sumByMonth(month).add(cost)
+                .compareTo(properties.getMonthlyBudgetUsd()) > 0;
+        boolean userDailyExceeded = usageStore.sumByUserByDay(userId, today).add(cost)
+                .compareTo(properties.getPerUserDailyBudgetUsd()) > 0;
+        boolean tenantMonthlyExceeded = usageStore.sumByTenantByMonth(tenantId, month).add(cost)
+                .compareTo(properties.getPerTenantMonthlyBudgetUsd()) > 0;
+        return dailyExceeded || monthlyExceeded || userDailyExceeded || tenantMonthlyExceeded;
     }
 }
