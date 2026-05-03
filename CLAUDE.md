@@ -48,6 +48,8 @@ The root `pom.xml` is the parent aggregator (`guardrail4j-parent`).
         ↓
 GuardrailInterceptor  (AOP @Around aspect)
         ↓
+SpelExpressionResolver  resolves dynamic annotation fields (userId, tenantId, etc.)
+        ↓
 CostEstimator         estimates USD cost from annotation token fields + pricing map
         ↓
 GuardrailDecisionEngine  evaluates 4 budget tiers against UsageStore aggregates
@@ -62,13 +64,18 @@ UsageStore.save(UsageRecord)  records the call (skipped on BLOCK)
 
 ### Key Classes
 
-- **`@LLMGuarded`** (`annotation/`) — method annotation carrying `provider`, `model`, `userId`, `tenantId`, `feature`, `estimatedInputTokens`, `estimatedOutputTokens`, `onViolation`, `fallbackModel`
-- **`GuardrailInterceptor`** (`aop/`) — Spring AOP aspect; the entry point for every guarded call
+- **`@LLMGuarded`** (`annotation/`) — method annotation carrying `provider`, `model`, `userId`, `tenantId`, `feature`, `estimatedInputTokens`, `estimatedOutputTokens`, `onViolation` (type: `GuardrailAction`), `fallbackModel`. String fields support SpEL expressions (e.g. `userId = "#request.userId"`).
+- **`GuardrailInterceptor`** (`aop/`) — Spring AOP aspect; the entry point for every guarded call. Uses `SpelExpressionResolver` to resolve dynamic annotation field values.
 - **`GuardrailDecisionEngine`** (`decision/`) — checks daily, monthly, per-user-daily, and per-tenant-monthly budgets and returns `GuardrailDecision` (ALLOW/WARN/BLOCK/FALLBACK)
 - **`CostEstimator`** (`cost/`) — looks up the `provider:model` key in the `pricing` map from `Guardrail4jProperties` and applies the token formula
 - **`UsageStore`** (`store/`) — interface with aggregation queries; only implementation is `InMemoryUsageStore` (thread-safe via `CopyOnWriteArrayList`, not persistent)
-- **`Guardrail4jAutoConfiguration`** (`config/`) — registers all beans; guards behind `@ConditionalOnProperty(prefix="guardrail4j", name="enabled", matchIfMissing=true)`
+- **`GuardrailController`** (`controller/`) — auto-registered REST controller; exposes `GET /guardrail4j/usage` (all UsageRecords) and `GET /guardrail4j/health` (status + record count)
+- **`Guardrail4jAutoConfiguration`** (`config/`) — registers all beans; guards behind `@ConditionalOnProperty(prefix="guardrail4j", name="enabled", havingValue="true", matchIfMissing=true)`
 - **`Guardrail4jProperties`** (`config/`) — bound to `guardrail4j.*`; holds budget thresholds, default action, fallback model, and `pricing` map
+- **`SpelExpressionResolver`** (`spel/`) — resolves SpEL expressions in annotation string fields; binds method parameters by name and positionally as `#p0`, `#p1`, …; returns the raw value unchanged if resolution fails
+- **`GuardrailAction`** (`model/`) — enum used by `@LLMGuarded.onViolation`; values: `WARN`, `BLOCK`, `FALLBACK` (no `ALLOW` — that is the default when no budget is exceeded)
+- **`GuardrailDecision`** (`model/`) — internal enum returned by `GuardrailDecisionEngine`; values: `ALLOW`, `WARN`, `BLOCK`, `FALLBACK`
+- **`UsageRecord`** (`model/`) — immutable record written to `UsageStore` after each allowed call; fields: `provider`, `model`, `userId`, `tenantId`, `feature`, `estimatedInputTokens`, `estimatedOutputTokens`, `estimatedCostUsd`, `timestamp`
 
 ### Configuration Shape
 
