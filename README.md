@@ -144,6 +144,18 @@ The starter stays outside the LLM provider SDK. It wraps your annotated method, 
 
 ---
 
+## How Guardrail4J works internally
+
+1. The developer annotates an LLM-calling method with `@LLMGuarded`.
+2. Spring AOP intercepts the method call before the application code runs.
+3. SpEL resolves `userId` and `tenantId` from method arguments when dynamic values are configured.
+4. `CostEstimator` estimates the call cost from provider/model token pricing.
+5. `GuardrailDecisionEngine` decides `ALLOW`, `WARN`, `BLOCK`, or `FALLBACK`.
+6. `UsageStore` records successful guarded calls.
+7. REST endpoints expose raw usage and summarized usage for inspection.
+
+---
+
 ## Annotation Reference
 
 | Field | Default | Description |
