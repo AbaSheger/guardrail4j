@@ -11,6 +11,9 @@ import io.github.abasheger.guardrail4j.store.InMemoryUsageStore;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.YearMonth;
+import java.time.ZoneOffset;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -72,15 +75,17 @@ class Guardrail4jTests {
     void usageStoreAggregationsIncludeUserAndTenantBudgets() {
         InMemoryUsageStore store = new InMemoryUsageStore();
         Instant now = Instant.now();
+        LocalDate utcDay = LocalDate.ofInstant(now, ZoneOffset.UTC);
+        YearMonth utcMonth = YearMonth.from(now.atZone(ZoneOffset.UTC));
 
         store.save(new UsageRecord("openai", "gpt-4o-mini", "u1", "t1", "summary", 10, 10,
                 new BigDecimal("0.25"), now));
         store.save(new UsageRecord("openai", "gpt-4o-mini", "u1", "t1", "summary", 10, 10,
                 new BigDecimal("0.75"), now));
 
-        assertTrue(store.sumByDay(java.time.LocalDate.now()).compareTo(new BigDecimal("1.00")) == 0);
-        assertTrue(store.sumByUserByDay("u1", java.time.LocalDate.now()).compareTo(new BigDecimal("1.00")) == 0);
-        assertTrue(store.sumByTenantByMonth("t1", java.time.YearMonth.now()).compareTo(new BigDecimal("1.00")) == 0);
+        assertTrue(store.sumByDay(utcDay).compareTo(new BigDecimal("1.00")) == 0);
+        assertTrue(store.sumByUserByDay("u1", utcDay).compareTo(new BigDecimal("1.00")) == 0);
+        assertTrue(store.sumByTenantByMonth("t1", utcMonth).compareTo(new BigDecimal("1.00")) == 0);
     }
 
     @Test

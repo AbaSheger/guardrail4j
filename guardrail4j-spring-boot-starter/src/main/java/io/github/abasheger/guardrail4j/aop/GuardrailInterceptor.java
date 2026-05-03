@@ -4,6 +4,7 @@ import io.github.abasheger.guardrail4j.annotation.LLMGuarded;
 import io.github.abasheger.guardrail4j.config.Guardrail4jProperties;
 import io.github.abasheger.guardrail4j.cost.CostEstimator;
 import io.github.abasheger.guardrail4j.decision.GuardrailDecisionEngine;
+import io.github.abasheger.guardrail4j.exception.GuardrailViolationException;
 import io.github.abasheger.guardrail4j.model.GuardrailDecision;
 import io.github.abasheger.guardrail4j.model.UsageRecord;
 import io.github.abasheger.guardrail4j.spel.SpelExpressionResolver;
@@ -57,7 +58,15 @@ public class GuardrailInterceptor {
         GuardrailDecision decision = decisionEngine.decide(guarded, estimatedCost, userId, tenantId);
 
         if (decision == GuardrailDecision.BLOCK) {
-            throw new IllegalStateException(BLOCK_MESSAGE);
+            throw new GuardrailViolationException(
+                    BLOCK_MESSAGE,
+                    decision,
+                    guarded.provider(),
+                    guarded.model(),
+                    userId,
+                    tenantId,
+                    guarded.feature()
+            );
         }
         if (decision == GuardrailDecision.WARN) {
             log.warn("Guardrail4J budget threshold exceeded for method {}",

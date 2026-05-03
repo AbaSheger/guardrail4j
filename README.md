@@ -158,6 +158,10 @@ The starter stays outside the LLM provider SDK. It wraps your annotated method, 
 | `onViolation` | `WARN` | Action on budget breach: `WARN`, `BLOCK`, `FALLBACK` |
 | `fallbackModel` | `""` | Suggested fallback model (logged only, not yet switched) |
 
+When a guarded call is blocked, Guardrail4J throws `GuardrailViolationException`.
+Applications can catch it to return a custom API response while still inspecting
+the decision, provider, model, user, tenant, and feature context.
+
 ---
 
 ## Monitoring Endpoints
