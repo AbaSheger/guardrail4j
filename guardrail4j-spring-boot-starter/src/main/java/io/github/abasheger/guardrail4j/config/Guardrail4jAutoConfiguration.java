@@ -7,6 +7,7 @@ import io.github.abasheger.guardrail4j.decision.GuardrailDecisionEngine;
 import io.github.abasheger.guardrail4j.spel.SpelExpressionResolver;
 import io.github.abasheger.guardrail4j.store.InMemoryUsageStore;
 import io.github.abasheger.guardrail4j.store.UsageStore;
+import io.github.abasheger.guardrail4j.usage.UsageSummaryService;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -53,6 +54,12 @@ public class Guardrail4jAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
+    public UsageSummaryService usageSummaryService(UsageStore usageStore) {
+        return new UsageSummaryService(usageStore);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
     public GuardrailInterceptor interceptor(
             UsageStore usageStore,
             CostEstimator costEstimator,
@@ -74,8 +81,9 @@ public class Guardrail4jAutoConfiguration {
     @ConditionalOnMissingBean
     public GuardrailController guardrailController(
             UsageStore usageStore,
+            UsageSummaryService usageSummaryService,
             Guardrail4jProperties properties
     ) {
-        return new GuardrailController(usageStore, properties);
+        return new GuardrailController(usageStore, usageSummaryService, properties);
     }
 }

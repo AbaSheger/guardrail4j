@@ -32,7 +32,8 @@ Teams shipping AI features need a simple way to enforce spend limits and protect
 - In-memory usage tracking with per-user and per-tenant aggregation
 - Cost estimation for OpenAI and Anthropic models via a configurable price table
 - Dynamic `userId` / `tenantId` extraction from method arguments via SpEL
-- REST monitoring endpoints: `/guardrail4j/usage` and `/guardrail4j/health`
+- REST monitoring endpoints: `/guardrail4j/usage`, `/guardrail4j/usage/summary`,
+  and `/guardrail4j/health`
 - Spring Boot auto-configuration — zero boilerplate setup
 
 ---
@@ -144,6 +145,7 @@ These are available automatically when the app is a web application.
 |----------|-------------|
 | `GET /guardrail4j/health` | Returns enabled status and total usage record count |
 | `GET /guardrail4j/usage` | Returns all recorded `UsageRecord` entries |
+| `GET /guardrail4j/usage/summary` | Returns total calls and estimated cost grouped by dimension |
 
 ---
 
@@ -163,6 +165,9 @@ curl -X POST http://localhost:8080/api/summarize \
 
 # Inspect usage
 curl http://localhost:8080/guardrail4j/usage
+
+# Inspect summarized usage
+curl http://localhost:8080/guardrail4j/usage/summary
 ```
 
 ---
@@ -224,6 +229,35 @@ curl http://localhost:8080/guardrail4j/usage
     "estimatedCostUsd": 0.00063
   }
 ]
+```
+
+**4. Inspect summarized usage grouped by provider, model, user, tenant, and feature:**
+
+```bash
+curl http://localhost:8080/guardrail4j/usage/summary
+```
+
+```json
+{
+  "totalCalls": 2,
+  "totalEstimatedCostUsd": 0.00126,
+  "costByProvider": {
+    "openai": 0.00126
+  },
+  "costByModel": {
+    "gpt-4o-mini": 0.00126
+  },
+  "costByUser": {
+    "alice": 0.00063,
+    "bob": 0.00063
+  },
+  "costByTenant": {
+    "acme": 0.00126
+  },
+  "costByFeature": {
+    "document-summary": 0.00126
+  }
+}
 ```
 
 Once a user's daily budget is exhausted, the next call returns HTTP 500 with `Guardrail4J blocked this LLM call due to budget limits`.
