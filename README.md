@@ -159,11 +159,74 @@ mvn -pl guardrail4j-demo spring-boot:run
 # Hit the guarded endpoint
 curl -X POST http://localhost:8080/api/summarize \
   -H "Content-Type: application/json" \
-  -d '{"text":"This document needs to be summarized."}'
+  -d '{"text":"This document needs to be summarized.","userId":"alice","tenantId":"acme"}'
 
 # Inspect usage
 curl http://localhost:8080/guardrail4j/usage
 ```
+
+---
+
+## Demo: dynamic per-user and per-tenant tracking
+
+The demo endpoint accepts `userId` and `tenantId` in the request body. The `@LLMGuarded` annotation resolves them at runtime via SpEL (`#request.userId`, `#request.tenantId`), so each call is tracked against the correct user and tenant budgets.
+
+**1. Make a guarded call as user `alice` in tenant `acme`:**
+
+```bash
+curl -X POST http://localhost:8080/api/summarize \
+  -H "Content-Type: application/json" \
+  -d '{
+    "text": "Spring Boot is a framework that simplifies building production-ready Java applications.",
+    "userId": "alice",
+    "tenantId": "acme"
+  }'
+```
+
+```json
+{ "summary": "[fake-llm-summary] Spring Boot is a framework that simplifies building production-ready Java applications." }
+```
+
+**2. Make a second call as a different user in the same tenant:**
+
+```bash
+curl -X POST http://localhost:8080/api/summarize \
+  -H "Content-Type: application/json" \
+  -d '{
+    "text": "Guardrail4J protects your LLM spend with annotation-based budget enforcement.",
+    "userId": "bob",
+    "tenantId": "acme"
+  }'
+```
+
+**3. Inspect the usage log — each record shows the resolved identity:**
+
+```bash
+curl http://localhost:8080/guardrail4j/usage
+```
+
+```json
+[
+  {
+    "provider": "openai",
+    "model": "gpt-4o-mini",
+    "userId": "alice",
+    "tenantId": "acme",
+    "feature": "document-summary",
+    "estimatedCostUsd": 0.00063
+  },
+  {
+    "provider": "openai",
+    "model": "gpt-4o-mini",
+    "userId": "bob",
+    "tenantId": "acme",
+    "feature": "document-summary",
+    "estimatedCostUsd": 0.00063
+  }
+]
+```
+
+Once a user's daily budget is exhausted, the next call returns HTTP 500 with `Guardrail4J blocked this LLM call due to budget limits`.
 
 ---
 
