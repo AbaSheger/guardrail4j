@@ -287,7 +287,21 @@ curl http://localhost:8080/guardrail4j/usage/summary
 }
 ```
 
-Once a user's daily budget is exhausted, the next call returns HTTP 500 with `Guardrail4J blocked this LLM call due to budget limits`.
+Once a user's daily budget is exhausted, the demo returns HTTP 429 with a clean
+JSON response:
+
+```json
+{
+  "error": "GUARDRAIL_BLOCKED",
+  "message": "Guardrail4J blocked this LLM call due to budget limits",
+  "decision": "BLOCK",
+  "provider": "openai",
+  "model": "gpt-4o-mini",
+  "userId": "alice",
+  "tenantId": "acme",
+  "feature": "document-summary"
+}
+```
 
 ---
 
