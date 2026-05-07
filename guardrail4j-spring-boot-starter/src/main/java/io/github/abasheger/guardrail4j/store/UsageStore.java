@@ -6,6 +6,14 @@ import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.List;
 
+/**
+ * Storage abstraction for usage records and budget aggregation.
+ *
+ * <p>Applications can provide their own Spring bean implementing this interface
+ * to replace the default in-memory store. Production deployments that run more
+ * than one application instance should use a shared persistent implementation
+ * so every instance evaluates budgets against the same usage data.</p>
+ */
 public interface UsageStore {
     void save(UsageRecord record);
     List<UsageRecord> findAll();

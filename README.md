@@ -156,6 +156,38 @@ The starter stays outside the LLM provider SDK. It wraps your annotated method, 
 
 ---
 
+## Storage and horizontal scaling
+
+The current MVP uses an in-memory `UsageStore` by default. This keeps setup
+simple for demos and local development, but the data lives inside one
+application process.
+
+In-memory storage is per application instance. In a horizontally scaled
+deployment, each instance has its own usage data, so budgets may be inaccurate
+because one instance cannot see usage recorded by another instance.
+
+Future PostgreSQL and Redis-backed `UsageStore` implementations are planned.
+Until then, production deployments should provide a shared persistent
+implementation by defining their own Spring bean. Guardrail4J auto-configuration
+uses `@ConditionalOnMissingBean`, so a user-defined `UsageStore` overrides the
+default `InMemoryUsageStore`.
+
+```java
+import io.github.abasheger.guardrail4j.store.UsageStore;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+class CustomUsageStoreConfig {
+    @Bean
+    UsageStore usageStore() {
+        return new MyPersistentUsageStore();
+    }
+}
+```
+
+---
+
 ## Annotation Reference
 
 | Field | Default | Description |

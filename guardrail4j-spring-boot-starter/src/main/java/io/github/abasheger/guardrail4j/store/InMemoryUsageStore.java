@@ -8,6 +8,15 @@ import java.time.ZoneOffset;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+/**
+ * Local, process-bound {@link UsageStore} implementation.
+ *
+ * <p>This store is intended for demos, tests, and local development only. It
+ * keeps usage data in the current JVM, loses all records on restart, and does
+ * not share state across horizontally scaled application instances. Production
+ * deployments should provide a shared persistent {@link UsageStore}
+ * implementation, such as a future PostgreSQL or Redis-backed store.</p>
+ */
 public class InMemoryUsageStore implements UsageStore {
 
     private final CopyOnWriteArrayList<UsageRecord> records = new CopyOnWriteArrayList<>();

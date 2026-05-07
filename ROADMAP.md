@@ -1,10 +1,10 @@
 # Roadmap
 
-This file tracks the planned evolution of Guardrail4J. Items are realistic and sequenced by dependency — later milestones depend on earlier ones being stable.
+This file tracks the planned evolution of Guardrail4J. Items are realistic and sequenced by dependency - later milestones depend on earlier ones being stable.
 
 ---
 
-## v0.1 — MVP (current)
+## v0.1 - MVP (current)
 
 **Goal:** prove the annotation-based interception model works end-to-end.
 
@@ -19,29 +19,30 @@ This file tracks the planned evolution of Guardrail4J. Items are realistic and s
 
 ---
 
-## v0.2 — Dynamic Identity and Better Observability
+## v0.2 - Persistent Storage and Horizontal Scaling
 
-**Goal:** make the starter useful for real multi-tenant SaaS apps.
+**Goal:** make usage data survive restarts and work across multiple instances.
 
-- [ ] SpEL-based `userId` and `tenantId` extraction from method arguments (`#userId`, `#p0`)
-- [ ] Identity extraction from Spring Security context (optional integration)
-- [ ] Structured usage summaries per feature, user, and tenant
-- [ ] Improved logging format with structured MDC fields
-
----
-
-## v0.3 — Persistent Storage
-
-**Goal:** usage data survives restarts and works across multiple instances.
-
+- [x] Document in-memory storage limitations for horizontal scaling
+- [x] Document the custom `UsageStore` override path
 - [ ] `UsageStore` backed by PostgreSQL (Spring Data JPA)
 - [ ] `UsageStore` backed by Redis (optional, for high-throughput scenarios)
-- [ ] Migration script for schema setup
 - [ ] Documentation for choosing a storage backend
 
 ---
 
-## v0.4 — Micrometer Metrics
+## v0.3 - Dynamic Identity and Better Observability
+
+**Goal:** make the starter useful for real multi-tenant SaaS apps.
+
+- [x] SpEL-based `userId` and `tenantId` extraction from method arguments (`#userId`, `#p0`)
+- [ ] Identity extraction from Spring Security context (optional integration)
+- [x] Structured usage summaries per feature, user, and tenant
+- [ ] Improved logging format with structured MDC fields
+
+---
+
+## v0.4 - Micrometer Metrics
 
 **Goal:** integrate with standard Spring Boot observability tooling.
 
@@ -56,8 +57,8 @@ This file tracks the planned evolution of Guardrail4J. Items are realistic and s
 
 These are exploratory and depend on community interest.
 
-- **Real fallback execution** — automatically re-invoke with the fallback model when `FALLBACK` is triggered
-- **Provider adapters** — thin wrappers for OpenAI and Anthropic SDKs so token counts come from actual API responses
-- **Richer pricing catalog** — auto-updated model pricing pulled from a public registry
-- **Hosted dashboard** — a lightweight UI for visualising spend across users and tenants
-- **Policy DSL** — a more expressive budget policy language beyond flat per-user / per-tenant thresholds
+- **Real fallback execution** - automatically re-invoke with the fallback model when `FALLBACK` is triggered
+- **Provider adapters** - thin wrappers for OpenAI and Anthropic SDKs so token counts come from actual API responses
+- **Richer pricing catalog** - auto-updated model pricing pulled from a public registry
+- **Hosted dashboard** - a lightweight UI for visualising spend across users and tenants
+- **Policy DSL** - a more expressive budget policy language beyond flat per-user / per-tenant thresholds
