@@ -1,6 +1,6 @@
 # Guardrail4J
 
-**A Spring Boot starter that enforces LLM cost budgets, fallback decisions, and abuse protection — one annotation.**
+**A Spring Boot starter for keeping LLM usage inside budget.**
 
 [![CI](https://github.com/AbaSheger/guardrail4j/actions/workflows/ci.yml/badge.svg)](https://github.com/AbaSheger/guardrail4j/actions/workflows/ci.yml)
 [![Java 21](https://img.shields.io/badge/Java-21-blue?logo=openjdk)](https://openjdk.org/projects/jdk/21/)
@@ -8,33 +8,63 @@
 [![Maven](https://img.shields.io/badge/build-Maven-C71A36?logo=apachemaven&logoColor=white)](https://maven.apache.org/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
+When AI features are billed per token, one heavy user can cost more than they
+pay you. Guardrail4J lets Java and Spring teams add budget checks around LLM
+calls with one annotation.
+
+```java
+@LLMGuarded(
+    userId = "#userId",
+    tenantId = "#tenantId",
+    onViolation = GuardrailAction.BLOCK
+)
+public String summarize(String text, String userId, String tenantId) {
+    return openAiClient.complete(text);
+}
+```
+
+Guardrail4J estimates cost before the method runs, checks configured budgets,
+records allowed usage, and decides whether to `ALLOW`, `WARN`, `BLOCK`, or
+suggest `FALLBACK`.
+
+[Watch the short social demo](docs/social-demo/guardrail4j-demo.mp4)
+
+> **Status:** Early MVP. Good for experimentation and local development. Not
+> production-ready yet. See [Current Limitations](#current-limitations) and
+> [Roadmap](ROADMAP.md).
+
 ---
 
-## Why Guardrail4J?
+## Why It Exists
 
-Teams shipping AI features need a simple way to enforce spend limits and protect against runaway costs — without rewriting their application code. Guardrail4J wraps any existing LLM method call with a single annotation. No vendor lock-in, no SDK replacement.
+Traditional SaaS usage is often bounded by compute, storage, or seats. LLM
+features add a direct variable cost per request. A customer on a fixed plan can
+become unprofitable if prompt sizes, output sizes, retries, agents, or abusive
+usage are not controlled.
 
-- Drop it into an existing Spring Boot app in minutes
-- Budget enforcement at the daily, monthly, per-user, and per-tenant levels
-- Decisions are declarative: `WARN`, `BLOCK`, or `FALLBACK`
-- REST endpoints for live usage inspection
+Guardrail4J gives Spring Boot apps a lightweight way to enforce cost controls
+without replacing your LLM SDK or rewriting your application flow.
+
+- Add `@LLMGuarded` to existing LLM-calling methods
+- Configure daily, monthly, per-user, and per-tenant budgets
+- Track spend by provider, model, user, tenant, and feature
+- Resolve `userId` and `tenantId` dynamically with SpEL
+- Expose usage through simple REST endpoints
+- Keep provider SDK choice outside the guardrail layer
 
 ---
 
-> **Status:** Early MVP. Suitable for experimentation and local development. Not production-ready. See [limitations](#current-limitations) and [roadmap](ROADMAP.md).
+## What It Does
 
----
-
-## Features
-
-- `@LLMGuarded` annotation for any LLM-calling method
-- Budget-aware decisions: `ALLOW` · `WARN` · `BLOCK` · `FALLBACK`
-- In-memory usage tracking with per-user and per-tenant aggregation
-- Cost estimation for OpenAI and Anthropic models via a configurable price table
-- Dynamic `userId` / `tenantId` extraction from method arguments via SpEL
-- REST monitoring endpoints: `/guardrail4j/usage`, `/guardrail4j/usage/summary`,
-  and `/guardrail4j/health`
-- Spring Boot auto-configuration — zero boilerplate setup
+| Capability | Current support |
+|------------|-----------------|
+| Method guardrail | `@LLMGuarded` annotation with Spring AOP interception |
+| Decisions | `ALLOW`, `WARN`, `BLOCK`, `FALLBACK` |
+| Budget scopes | Daily, monthly, per-user daily, per-tenant monthly |
+| Cost model | Configurable provider/model price table |
+| Identity | Static values or SpEL expressions such as `#userId`, `#tenantId`, `#p0` |
+| Storage | In-memory `UsageStore`, replaceable with your own bean |
+| Monitoring | `/guardrail4j/health`, `/guardrail4j/usage`, `/guardrail4j/usage/summary` |
 
 ---
 
@@ -50,7 +80,7 @@ Teams shipping AI features need a simple way to enforce spend limits and protect
 </dependency>
 ```
 
-### 2. Annotate your LLM method
+### 2. Annotate an LLM method
 
 ```java
 import io.github.abasheger.guardrail4j.annotation.LLMGuarded;
@@ -59,40 +89,24 @@ import io.github.abasheger.guardrail4j.model.GuardrailAction;
 @LLMGuarded(
     provider = "openai",
     model = "gpt-4o-mini",
-    userId = "user-123",
-    tenantId = "acme-corp",
-    feature = "doc-summary",
+    userId = "#userId",
+    tenantId = "#tenantId",
+    feature = "document-summary",
     estimatedInputTokens = 2000,
     estimatedOutputTokens = 500,
     onViolation = GuardrailAction.BLOCK
 )
-public String summarize(String document) {
-    // your existing LLM call — unchanged
-    return openAiClient.complete(document);
-}
-```
-
-### Dynamic identity with SpEL
-
-Set `userId` or `tenantId` to a Spring Expression starting with `#` to resolve values from the method's arguments at runtime:
-
-```java
-@LLMGuarded(
-    provider = "openai",
-    model = "gpt-4o-mini",
-    userId = "#userId",
-    tenantId = "#tenantId",
-    feature = "document-summary",
-    onViolation = GuardrailAction.BLOCK
-)
 public String summarizeDocument(String text, String userId, String tenantId) {
+    // Your existing LLM call stays here.
     return openAiClient.complete(text);
 }
 ```
 
-Positional references (`#p0`, `#p1`, …) also work when parameter names are unavailable. If the expression cannot be resolved, the raw string is used as a fallback.
+`userId` and `tenantId` can be literal strings or Spring Expression Language
+references to method arguments. Positional references such as `#p0` and `#p1`
+also work when parameter names are unavailable.
 
-### 3. Configure budgets in `application.yml`
+### 3. Configure budgets
 
 ```yaml
 guardrail4j:
@@ -112,7 +126,7 @@ guardrail4j:
       outputPer1MUsd: 1.25
 ```
 
-To disable Guardrail4J without removing it:
+Disable Guardrail4J without removing the dependency:
 
 ```yaml
 guardrail4j:
@@ -121,7 +135,7 @@ guardrail4j:
 
 ---
 
-## Architecture
+## How It Works
 
 ```mermaid
 flowchart LR
@@ -130,7 +144,7 @@ flowchart LR
     Interceptor --> Spel["SpEL identity resolver"]
     Interceptor --> Cost["CostEstimator"]
     Cost --> Decision["GuardrailDecisionEngine"]
-    Decision --> Store["InMemoryUsageStore"]
+    Decision --> Store["UsageStore"]
     Decision --> Allow{"Budget OK?"}
     Allow -->|Yes| Proceed["Proceed with method call"]
     Allow -->|No| Action["WARN / BLOCK / FALLBACK"]
@@ -140,173 +154,33 @@ flowchart LR
     Store --> Summary["GET /guardrail4j/usage/summary"]
 ```
 
-The starter stays outside the LLM provider SDK. It wraps your annotated method, estimates the call cost, checks configured budgets, records allowed usage, and exposes usage data through lightweight monitoring endpoints.
+Flow:
 
----
+1. A method annotated with `@LLMGuarded` is called.
+2. Spring AOP intercepts the call before your method body runs.
+3. Guardrail4J resolves `userId` and `tenantId`.
+4. `CostEstimator` estimates the request cost from provider/model pricing.
+5. `GuardrailDecisionEngine` checks configured budgets.
+6. The call is allowed, warned, blocked, or marked for fallback.
+7. Successful guarded calls are recorded in `UsageStore`.
+8. Usage data is exposed through REST monitoring endpoints.
 
-## How Guardrail4J works internally
-
-1. The developer annotates an LLM-calling method with `@LLMGuarded`.
-2. Spring AOP intercepts the method call before the application code runs.
-3. SpEL resolves `userId` and `tenantId` from method arguments when dynamic values are configured.
-4. `CostEstimator` estimates the call cost from provider/model token pricing.
-5. `GuardrailDecisionEngine` decides `ALLOW`, `WARN`, `BLOCK`, or `FALLBACK`.
-6. `UsageStore` records successful guarded calls.
-7. REST endpoints expose raw usage and summarized usage for inspection.
-
----
-
-## Storage and horizontal scaling
-
-The current MVP uses an in-memory `UsageStore` by default. This keeps setup
-simple for demos and local development, but the data lives inside one
-application process.
-
-In-memory storage is per application instance. In a horizontally scaled
-deployment, each instance has its own usage data, so budgets may be inaccurate
-because one instance cannot see usage recorded by another instance.
-
-Future PostgreSQL and Redis-backed `UsageStore` implementations are planned.
-Until then, production deployments should provide a shared persistent
-implementation by defining their own Spring bean. Guardrail4J auto-configuration
-uses `@ConditionalOnMissingBean`, so a user-defined `UsageStore` overrides the
-default `InMemoryUsageStore`.
-
-```java
-import io.github.abasheger.guardrail4j.store.UsageStore;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-
-@Configuration
-class CustomUsageStoreConfig {
-    @Bean
-    UsageStore usageStore() {
-        return new MyPersistentUsageStore();
-    }
-}
-```
-
----
-
-## Annotation Reference
-
-| Field | Default | Description |
-|-------|---------|-------------|
-| `provider` | `"openai"` | Provider key for price lookup |
-| `model` | `"gpt-4o-mini"` | Model key for price lookup |
-| `userId` | `"anonymous"` | User identifier; supports SpEL (`#userId`) |
-| `tenantId` | `"default"` | Tenant identifier; supports SpEL (`#tenantId`) |
-| `feature` | `"general"` | Feature tag for usage records |
-| `estimatedInputTokens` | `1000` | Estimated prompt tokens |
-| `estimatedOutputTokens` | `250` | Estimated completion tokens |
-| `onViolation` | `WARN` | Action on budget breach: `WARN`, `BLOCK`, `FALLBACK` |
-| `fallbackModel` | `""` | Suggested fallback model (logged only, not yet switched) |
-
-When a guarded call is blocked, Guardrail4J throws `GuardrailViolationException`.
-Applications can catch it to return a custom API response while still inspecting
-the decision, provider, model, user, tenant, and feature context.
+The starter stays outside the provider SDK. It does not require OpenAI,
+Anthropic, LangChain4j, Spring AI, or any specific client.
 
 ---
 
 ## Monitoring Endpoints
 
-These are available automatically when the app is a web application.
+These endpoints are available automatically when the app is a web application.
 
 | Endpoint | Description |
 |----------|-------------|
 | `GET /guardrail4j/health` | Returns enabled status and total usage record count |
-| `GET /guardrail4j/usage` | Returns all recorded `UsageRecord` entries |
-| `GET /guardrail4j/usage/summary` | Returns total calls and estimated cost grouped by dimension |
+| `GET /guardrail4j/usage` | Returns recorded `UsageRecord` entries |
+| `GET /guardrail4j/usage/summary` | Returns total calls and estimated cost grouped by provider, model, user, tenant, and feature |
 
----
-
-## Running the Demo
-
-```bash
-# Build and run all tests
-mvn clean verify
-
-# Start the demo app (port 8080)
-mvn -pl guardrail4j-demo spring-boot:run
-
-# Hit the guarded endpoint
-curl -X POST http://localhost:8080/api/summarize \
-  -H "Content-Type: application/json" \
-  -d '{"text":"This document needs to be summarized.","userId":"alice","tenantId":"acme"}'
-
-# Inspect usage
-curl http://localhost:8080/guardrail4j/usage
-
-# Inspect summarized usage
-curl http://localhost:8080/guardrail4j/usage/summary
-```
-
----
-
-## Demo: dynamic per-user and per-tenant tracking
-
-The demo endpoint accepts `userId` and `tenantId` in the request body. The `@LLMGuarded` annotation resolves them at runtime via SpEL (`#request.userId`, `#request.tenantId`), so each call is tracked against the correct user and tenant budgets.
-
-**1. Make a guarded call as user `alice` in tenant `acme`:**
-
-```bash
-curl -X POST http://localhost:8080/api/summarize \
-  -H "Content-Type: application/json" \
-  -d '{
-    "text": "Spring Boot is a framework that simplifies building production-ready Java applications.",
-    "userId": "alice",
-    "tenantId": "acme"
-  }'
-```
-
-```json
-{ "summary": "[fake-llm-summary] Spring Boot is a framework that simplifies building production-ready Java applications." }
-```
-
-**2. Make a second call as a different user in the same tenant:**
-
-```bash
-curl -X POST http://localhost:8080/api/summarize \
-  -H "Content-Type: application/json" \
-  -d '{
-    "text": "Guardrail4J protects your LLM spend with annotation-based budget enforcement.",
-    "userId": "bob",
-    "tenantId": "acme"
-  }'
-```
-
-**3. Inspect the usage log — each record shows the resolved identity:**
-
-```bash
-curl http://localhost:8080/guardrail4j/usage
-```
-
-```json
-[
-  {
-    "provider": "openai",
-    "model": "gpt-4o-mini",
-    "userId": "alice",
-    "tenantId": "acme",
-    "feature": "document-summary",
-    "estimatedCostUsd": 0.00063
-  },
-  {
-    "provider": "openai",
-    "model": "gpt-4o-mini",
-    "userId": "bob",
-    "tenantId": "acme",
-    "feature": "document-summary",
-    "estimatedCostUsd": 0.00063
-  }
-]
-```
-
-**4. Inspect summarized usage grouped by provider, model, user, tenant, and feature:**
-
-```bash
-curl http://localhost:8080/guardrail4j/usage/summary
-```
+Example summary response:
 
 ```json
 {
@@ -331,8 +205,9 @@ curl http://localhost:8080/guardrail4j/usage/summary
 }
 ```
 
-Once a user's daily budget is exhausted, the demo returns HTTP 429 with a clean
-JSON response:
+When a guarded call is blocked, Guardrail4J throws
+`GuardrailViolationException`. Applications can catch it and return their own
+API response. The demo app returns HTTP 429:
 
 ```json
 {
@@ -349,9 +224,36 @@ JSON response:
 
 ---
 
-## Demo Screenshot
+## Running the Demo
 
-The demo flow can be captured with Playwright after starting the demo app:
+```bash
+# Build and run tests
+mvn clean verify
+
+# Start the demo app on port 8080
+mvn -pl guardrail4j-demo spring-boot:run
+```
+
+Make a guarded request:
+
+```bash
+curl -X POST http://localhost:8080/api/summarize \
+  -H "Content-Type: application/json" \
+  -d '{
+    "text": "Spring Boot simplifies production-ready Java applications.",
+    "userId": "alice",
+    "tenantId": "acme"
+  }'
+```
+
+Inspect usage:
+
+```bash
+curl http://localhost:8080/guardrail4j/usage
+curl http://localhost:8080/guardrail4j/usage/summary
+```
+
+Capture the static demo screenshot:
 
 ```bash
 npm run demo:capture
@@ -361,17 +263,78 @@ This writes `docs/demo-summary.png`.
 
 ![Guardrail4J demo summary](docs/demo-summary.png)
 
+The LinkedIn/social demo asset is generated from static HTML:
+
+```bash
+node scripts/capture-social-demo.mjs
+```
+
+This writes `docs/social-demo/guardrail4j-demo.mp4`.
+
+---
+
+## Storage and Scaling
+
+The default `UsageStore` is in-memory. This keeps setup simple for local demos,
+but it has important production implications:
+
+- Usage data is lost when the app restarts.
+- Each app instance has its own usage state.
+- Horizontally scaled deployments may calculate budgets incorrectly because
+  instances cannot see each other's usage.
+
+Future PostgreSQL and Redis-backed stores are planned. Until then, production
+deployments should provide a shared persistent implementation by defining their
+own Spring bean. Guardrail4J auto-configuration uses
+`@ConditionalOnMissingBean`, so your bean replaces the default store.
+
+```java
+import io.github.abasheger.guardrail4j.store.UsageStore;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+class CustomUsageStoreConfig {
+    @Bean
+    UsageStore usageStore() {
+        return new MyPersistentUsageStore();
+    }
+}
+```
+
+---
+
+## Annotation Reference
+
+| Field | Default | Description |
+|-------|---------|-------------|
+| `provider` | `"openai"` | Provider key for price lookup |
+| `model` | `"gpt-4o-mini"` | Model key for price lookup |
+| `userId` | `"anonymous"` | User identifier; supports SpEL such as `#userId` |
+| `tenantId` | `"default"` | Tenant identifier; supports SpEL such as `#tenantId` |
+| `feature` | `"general"` | Feature tag for usage records |
+| `estimatedInputTokens` | `1000` | Estimated prompt tokens |
+| `estimatedOutputTokens` | `250` | Estimated completion tokens |
+| `onViolation` | `WARN` | Action on budget breach: `WARN`, `BLOCK`, `FALLBACK` |
+| `fallbackModel` | `""` | Suggested fallback model, logged only in the current MVP |
+
 ---
 
 ## Current Limitations
 
-Guardrail4J is an early MVP. Be aware of these constraints before using it in production:
+Guardrail4J is an early MVP. Be aware of these constraints before using it for
+serious production enforcement:
 
-- **In-memory only** — all usage data is lost on restart; no persistence yet
-- **Estimated tokens only** — cost is based on annotation fields, not actual API response counts
-- **No real LLM calls** — the starter enforces budgets but does not make or intercept actual provider API calls
-- **FALLBACK is advisory** — logs a suggested model but does not switch the provider or model automatically
-- **Single-instance** — in-memory state is not shared across multiple app instances
+- **In-memory storage only:** usage data is lost on restart and not shared
+  across app instances.
+- **Estimated token counts:** cost is based on annotation fields, not actual
+  provider response usage.
+- **No provider interception:** the starter guards your annotated method but
+  does not make or proxy real LLM API calls.
+- **Advisory fallback:** `FALLBACK` records/logs the decision but does not
+  automatically switch provider or model yet.
+- **Limited policy model:** current budgets are flat daily/monthly/user/tenant
+  thresholds.
 
 ---
 
@@ -382,16 +345,17 @@ See [ROADMAP.md](ROADMAP.md) for the full plan.
 | Version | Theme |
 |---------|-------|
 | v0.1 | MVP: annotation, in-memory budgets, cost estimation |
-| v0.2 | Dynamic identity via SpEL, improved usage summaries |
-| v0.3 | Persistent storage (PostgreSQL / Redis) |
+| v0.2 | Persistent storage and horizontal scaling |
+| v0.3 | Dynamic identity and better observability |
 | v0.4 | Micrometer metrics integration |
-| Future | Hosted dashboard, provider adapters, real fallback execution |
+| Future | Provider adapters, real fallback execution, hosted dashboard, richer policy DSL |
 
 ---
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md). All contributions welcome — especially tests and feedback on the API shape.
+See [CONTRIBUTING.md](CONTRIBUTING.md). Feedback on the API shape, examples,
+tests, and storage backends is especially useful.
 
 ---
 
