@@ -60,5 +60,5 @@ These are exploratory and depend on community interest.
 - **Real fallback execution** - automatically re-invoke with the fallback model when `FALLBACK` is triggered
 - **Provider adapters** - thin wrappers for OpenAI and Anthropic SDKs so token counts come from actual API responses
 - **Richer pricing catalog** - auto-updated model pricing pulled from a public registry
-- **Hosted dashboard** - a lightweight UI for visualising spend across users and tenants
+- **Hosted dashboard** - a lightweight UI for visualizing spend across users and tenants
 - **Policy DSL** - a more expressive budget policy language beyond flat per-user / per-tenant thresholds

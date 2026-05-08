@@ -230,6 +230,9 @@ API response. The demo app returns HTTP 429:
 # Build and run tests
 mvn clean verify
 
+# Install local modules so the demo can resolve the starter dependency
+mvn -DskipTests install
+
 # Start the demo app on port 8080
 mvn -pl guardrail4j-demo spring-boot:run
 ```
@@ -253,23 +256,31 @@ curl http://localhost:8080/guardrail4j/usage
 curl http://localhost:8080/guardrail4j/usage/summary
 ```
 
-Capture the static demo screenshot:
+### Demo Assets
+
+Install the JavaScript tooling once:
+
+```bash
+npm install
+```
+
+Capture the demo app screenshot:
 
 ```bash
 npm run demo:capture
 ```
 
-This writes `docs/demo-summary.png`.
+Requires the demo app to be running. Output: `docs/demo-summary.png`
 
 ![Guardrail4J demo summary](docs/demo-summary.png)
 
-The LinkedIn/social demo asset is generated from static HTML:
+Generate the LinkedIn/social demo video:
 
 ```bash
-node scripts/capture-social-demo.mjs
+npm run social:capture
 ```
 
-This writes `docs/social-demo/guardrail4j-demo.mp4`.
+Output: `docs/social-demo/guardrail4j-demo.mp4`
 
 ---
 

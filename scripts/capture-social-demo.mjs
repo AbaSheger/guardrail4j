@@ -4,6 +4,7 @@ import { existsSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { spawn } from 'node:child_process';
+import ffmpegPath from 'ffmpeg-static';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(__dirname, '..');
@@ -66,8 +67,10 @@ async function captureFrames() {
 }
 
 async function encodeVideo() {
+  const ffmpegCommand = ffmpegPath ?? 'ffmpeg';
+
   try {
-    await run('ffmpeg', ffmpegArgs);
+    await run(ffmpegCommand, ffmpegArgs);
     console.log(`Saved ${outputPath}`);
   } catch (error) {
     console.warn('Could not create MP4 because ffmpeg is unavailable or failed.');

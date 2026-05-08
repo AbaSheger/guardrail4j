@@ -1,3 +1,5 @@
 node_modules/
 target/
 */target/
+docs/social-demo/.frames/
+docs/social-demo/.review/

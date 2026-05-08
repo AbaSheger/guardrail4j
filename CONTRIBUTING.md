@@ -1,6 +1,8 @@
 # Contributing to Guardrail4J
 
-Thanks for your interest. Guardrail4J is an early-stage open-source project and contributions are welcome — especially bug reports, test coverage, and feedback on the API shape.
+Thanks for your interest. Guardrail4J is an early-stage open-source project and
+contributions are welcome, especially bug reports, test coverage, and feedback
+on the API shape.
 
 ## Prerequisites
 
@@ -8,7 +10,7 @@ Thanks for your interest. Guardrail4J is an early-stage open-source project and 
 - Maven 3.9+
 - Git
 
-## Getting started
+## Getting Started
 
 ```bash
 git clone https://github.com/AbaSheger/guardrail4j.git
@@ -18,7 +20,7 @@ mvn clean verify
 
 All tests should pass before you make any changes.
 
-## Running tests
+## Running Tests
 
 ```bash
 # Run all tests across all modules
@@ -31,7 +33,7 @@ mvn -Dtest=Guardrail4jTests test -pl guardrail4j-spring-boot-starter
 mvn -Dtest=Guardrail4jTests#costEstimationUsesConfiguredPriceTable test -pl guardrail4j-spring-boot-starter
 ```
 
-## Branch naming
+## Branch Naming
 
 | Type | Pattern | Example |
 |------|---------|---------|
@@ -41,23 +43,29 @@ mvn -Dtest=Guardrail4jTests#costEstimationUsesConfiguredPriceTable test -pl guar
 
 Work from `main`. Open a PR against `main`.
 
-## Before opening a PR
+## Before Opening a PR
 
 - [ ] `mvn clean verify` passes locally
-- [ ] New behaviour is covered by tests
+- [ ] New behavior is covered by tests
 - [ ] No unrelated files are included in the diff
 - [ ] The PR description explains what changed and why
 
-## PR expectations
+## PR Expectations
 
-Keep PRs small and focused. A PR that does one thing is much easier to review than one that does three. If your change is large, consider breaking it into sequential PRs.
+Keep PRs small and focused. A PR that does one thing is much easier to review
+than one that does three. If your change is large, consider breaking it into
+sequential PRs.
 
-The project uses a PR template — fill it out completely. Reviewers may ask you to add tests or split a PR before merging.
+The project uses a PR template. Fill it out completely. Reviewers may ask you
+to add tests or split a PR before merging.
 
-## Code style
+## Code Style
 
-The project follows standard Java conventions. There is no checkstyle enforcer yet, but please match the style of the surrounding code: 4-space indentation, no wildcard imports, descriptive names.
+The project follows standard Java conventions. There is no checkstyle enforcer
+yet, but please match the style of the surrounding code: 4-space indentation,
+no wildcard imports, and descriptive names.
 
-## Reporting bugs
+## Reporting Bugs
 
-Open a [GitHub issue](https://github.com/AbaSheger/guardrail4j/issues) using the bug report template. For security issues, see [SECURITY.md](SECURITY.md).
+Open a [GitHub issue](https://github.com/AbaSheger/guardrail4j/issues) using
+the bug report template. For security issues, see [SECURITY.md](SECURITY.md).
