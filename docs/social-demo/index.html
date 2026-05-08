@@ -1,0 +1,425 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Guardrail4J LinkedIn Demo</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #07110f;
+      --panel: #0d1f1b;
+      --panel-2: #102722;
+      --border: #24443c;
+      --text: #ecfdf5;
+      --muted: #9fb8af;
+      --green: #38d89b;
+      --amber: #f4b64a;
+      --red: #ff6b6b;
+      --blue: #6aa8ff;
+      --violet: #b59cff;
+      --shadow: 0 24px 90px rgba(0, 0, 0, 0.38);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 18% 12%, rgba(56, 216, 155, 0.22), transparent 28%),
+        radial-gradient(circle at 82% 20%, rgba(106, 168, 255, 0.18), transparent 30%),
+        linear-gradient(135deg, #07110f 0%, #0b1716 54%, #08110f 100%);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    .stage {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      padding: clamp(34px, 5vw, 72px);
+      isolation: isolate;
+    }
+
+    .frame {
+      position: relative;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      border: 1px solid rgba(159, 184, 175, 0.22);
+      border-radius: 28px;
+      background: rgba(7, 17, 15, 0.72);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(12px);
+    }
+
+    .topbar,
+    .footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      padding: 28px 34px;
+      z-index: 2;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      font-size: 20px;
+      font-weight: 800;
+    }
+
+    .mark {
+      display: grid;
+      place-items: center;
+      width: 42px;
+      height: 42px;
+      border: 1px solid rgba(56, 216, 155, 0.55);
+      border-radius: 12px;
+      background: linear-gradient(145deg, rgba(56, 216, 155, 0.26), rgba(106, 168, 255, 0.14));
+      color: var(--green);
+      font-family: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+      font-weight: 900;
+    }
+
+    .pill {
+      border: 1px solid rgba(159, 184, 175, 0.28);
+      border-radius: 999px;
+      padding: 9px 15px;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 650;
+    }
+
+    .content {
+      position: relative;
+      min-height: 0;
+    }
+
+    .scene {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      padding: 24px 58px;
+      opacity: 0;
+      transform: translateY(26px) scale(0.985);
+      transition: opacity 420ms ease, transform 420ms ease;
+    }
+
+    .scene.active {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+
+    .hero {
+      max-width: 860px;
+      text-align: center;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(56px, 8vw, 118px);
+      line-height: 0.92;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      margin: 28px auto 0;
+      max-width: 760px;
+      color: var(--muted);
+      font-size: clamp(24px, 3vw, 38px);
+      line-height: 1.2;
+      font-weight: 650;
+    }
+
+    .accent {
+      color: var(--green);
+    }
+
+    .code-card,
+    .api-grid,
+    .summary-card,
+    .final-card {
+      width: min(920px, 100%);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      background: linear-gradient(180deg, rgba(16, 39, 34, 0.96), rgba(9, 22, 20, 0.96));
+      box-shadow: 0 18px 70px rgba(0, 0, 0, 0.34);
+      overflow: hidden;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 22px;
+      border-bottom: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 16px;
+      font-weight: 750;
+    }
+
+    pre {
+      margin: 0;
+      padding: 28px;
+      overflow: hidden;
+      color: #d6f8e8;
+      font-family: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+      font-size: clamp(22px, 2.45vw, 33px);
+      line-height: 1.45;
+      white-space: pre-wrap;
+    }
+
+    .kw {
+      color: var(--violet);
+    }
+
+    .str {
+      color: var(--green);
+    }
+
+    .num {
+      color: var(--amber);
+    }
+
+    .api-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+    }
+
+    .method {
+      color: var(--green);
+      font-family: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+      font-weight: 900;
+    }
+
+    .path {
+      color: var(--blue);
+      font-family: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+      font-weight: 850;
+    }
+
+    .summary-card pre {
+      font-size: clamp(20px, 2.2vw, 29px);
+    }
+
+    .decision-row {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      padding: 30px;
+    }
+
+    .decision {
+      display: grid;
+      place-items: center;
+      min-height: 104px;
+      border: 1px solid rgba(159, 184, 175, 0.23);
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.035);
+      font-size: clamp(24px, 3vw, 42px);
+      font-weight: 900;
+    }
+
+    .decision.allow {
+      color: var(--green);
+    }
+
+    .decision.warn {
+      color: var(--amber);
+    }
+
+    .decision.block {
+      color: var(--red);
+    }
+
+    .decision.fallback {
+      color: var(--blue);
+    }
+
+    .repo {
+      padding: 0 30px 34px;
+      color: var(--text);
+      font-size: clamp(24px, 3vw, 38px);
+      font-weight: 800;
+      text-align: center;
+    }
+
+    .progress {
+      width: 240px;
+      height: 8px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: rgba(159, 184, 175, 0.2);
+    }
+
+    .progress span {
+      display: block;
+      width: calc(var(--progress, 0) * 100%);
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--green), var(--blue));
+    }
+
+    .footer {
+      color: var(--muted);
+      font-size: 15px;
+      font-weight: 650;
+    }
+
+    @media (max-width: 760px) {
+      .stage {
+        padding: 18px;
+      }
+
+      .frame {
+        border-radius: 20px;
+      }
+
+      .topbar,
+      .footer {
+        padding: 20px;
+      }
+
+      .scene {
+        padding: 16px 22px;
+      }
+
+      .decision-row {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="stage">
+    <section class="frame">
+      <header class="topbar">
+        <div class="brand">
+          <div class="mark">G4J</div>
+          <span>Guardrail4J</span>
+        </div>
+        <div class="pill">Spring Boot starter</div>
+      </header>
+
+      <div class="content">
+        <section class="scene active" data-scene="0">
+          <div class="hero">
+            <h1>Guardrail<span class="accent">4J</span></h1>
+            <p class="subtitle">Spring Boot starter for LLM cost guardrails</p>
+          </div>
+        </section>
+
+        <section class="scene" data-scene="1">
+          <article class="code-card">
+            <div class="card-header">
+              <span>Annotate an LLM method</span>
+              <span class="method">@LLMGuarded</span>
+            </div>
+            <pre><span class="kw">@LLMGuarded</span>(
+  provider = <span class="str">"openai"</span>,
+  model = <span class="str">"gpt-4o-mini"</span>,
+  userId = <span class="str">"#userId"</span>,
+  tenantId = <span class="str">"#tenantId"</span>,
+  onViolation = <span class="kw">GuardrailAction</span>.BLOCK
+)
+public String summarize(String text) { ... }</pre>
+          </article>
+        </section>
+
+        <section class="scene" data-scene="2">
+          <article class="api-grid">
+            <div class="card-header">
+              <span><span class="method">POST</span> <span class="path">/api/summarize</span></span>
+              <span>guarded request</span>
+            </div>
+            <pre>{
+  "text": "Summarize this launch plan...",
+  "userId": <span class="str">"alice"</span>,
+  "tenantId": <span class="str">"acme"</span>
+}</pre>
+          </article>
+        </section>
+
+        <section class="scene" data-scene="3">
+          <article class="summary-card">
+            <div class="card-header">
+              <span><span class="method">GET</span> <span class="path">/guardrail4j/usage/summary</span></span>
+              <span>live spend view</span>
+            </div>
+            <pre>{
+  "totalCalls": <span class="num">1</span>,
+  "totalEstimatedCostUsd": <span class="num">0.0006</span>,
+  "byUser": { "alice": { "calls": <span class="num">1</span> } },
+  "byTenant": { "acme": { "calls": <span class="num">1</span> } },
+  "decision": <span class="str">"ALLOW"</span>
+}</pre>
+          </article>
+        </section>
+
+        <section class="scene" data-scene="4">
+          <article class="final-card">
+            <div class="decision-row">
+              <div class="decision allow">ALLOW</div>
+              <div class="decision warn">WARN</div>
+              <div class="decision block">BLOCK</div>
+              <div class="decision fallback">FALLBACK</div>
+            </div>
+            <div class="repo">github.com/AbaSheger/guardrail4j</div>
+          </article>
+        </section>
+      </div>
+
+      <footer class="footer">
+        <span>LLM budget checks before the call runs</span>
+        <div class="progress" aria-hidden="true"><span></span></div>
+      </footer>
+    </section>
+  </main>
+
+  <script>
+    const durationMs = 9000;
+    const scenes = Array.from(document.querySelectorAll('.scene'));
+    const root = document.documentElement;
+    let startedAt = performance.now();
+    let manualTime = null;
+
+    function setTime(ms) {
+      const clamped = Math.max(0, Math.min(durationMs, ms));
+      const index = Math.min(scenes.length - 1, Math.floor(clamped / (durationMs / scenes.length)));
+      scenes.forEach((scene, sceneIndex) => {
+        scene.classList.toggle('active', sceneIndex === index);
+      });
+      root.style.setProperty('--progress', String(clamped / durationMs));
+    }
+
+    function frame(now) {
+      if (manualTime === null) {
+        setTime(now - startedAt);
+      }
+      requestAnimationFrame(frame);
+    }
+
+    window.__setDemoTime = (ms) => {
+      manualTime = ms;
+      setTime(ms);
+    };
+
+    window.__playDemo = () => {
+      manualTime = null;
+      startedAt = performance.now();
+    };
+
+    requestAnimationFrame(frame);
+  </script>
+</body>
+</html>
