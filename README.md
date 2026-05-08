@@ -138,21 +138,37 @@ guardrail4j:
 ## How It Works
 
 ```mermaid
-flowchart LR
-    App["Spring Boot app"] --> Guarded["@LLMGuarded method"]
-    Guarded --> Interceptor["GuardrailInterceptor"]
-    Interceptor --> Spel["SpEL identity resolver"]
-    Interceptor --> Cost["CostEstimator"]
-    Cost --> Decision["GuardrailDecisionEngine"]
-    Store["UsageStore"] --> Decision
-    Decision --> Allow{"Decision"}
-    Allow -->|ALLOW / WARN / FALLBACK| Proceed["Proceed with method call"]
-    Allow -->|BLOCK| Block["Throw GuardrailViolationException"]
-    Proceed --> Record["Save UsageRecord"]
-    Record --> Store
-    Store --> Usage["GET /guardrail4j/usage"]
-    Store --> Summary["GET /guardrail4j/usage/summary"]
-    Store --> Health["GET /guardrail4j/health"]
+flowchart TD
+    A["@LLMGuarded method"]
+    B["GuardrailInterceptor"]
+    C["Resolve identity"]
+    D["Estimate cost"]
+    E["Check budgets"]
+    F["UsageStore"]
+    G{"Decision"}
+    H["Proceed"]
+    I["Block"]
+    J["Record usage"]
+    K["Usage endpoints"]
+
+    A --> B --> C --> D --> E --> G
+    F --> E
+    G -->|ALLOW / WARN / FALLBACK| H
+    G -->|BLOCK| I
+    H --> J --> F
+    F --> K
+
+    classDef app fill:#dbeafe,stroke:#2563eb,color:#0f172a;
+    classDef guard fill:#dcfce7,stroke:#16a34a,color:#052e16;
+    classDef store fill:#fef3c7,stroke:#d97706,color:#451a03;
+    classDef decision fill:#f3e8ff,stroke:#9333ea,color:#2e1065;
+    classDef block fill:#fee2e2,stroke:#dc2626,color:#450a0a;
+
+    class A app;
+    class B,C,D,E,H,J,K guard;
+    class F store;
+    class G decision;
+    class I block;
 ```
 
 Flow:
