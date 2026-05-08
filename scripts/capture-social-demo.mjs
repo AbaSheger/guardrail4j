@@ -20,28 +20,6 @@ if (!existsSync(htmlPath)) {
   throw new Error(`Demo page not found: ${htmlPath}`);
 }
 
-await mkdir(framesDir, { recursive: true });
-
-const browser = await chromium.launch();
-const page = await browser.newPage({
-  viewport: { width, height },
-  deviceScaleFactor: 1
-});
-
-try {
-  await page.goto(pathToFileURL(htmlPath).href, { waitUntil: 'networkidle' });
-
-  for (let index = 0; index < frameCount; index += 1) {
-    const ms = Math.round((index / fps) * 1000);
-    await page.evaluate((time) => window.__setDemoTime(time), ms);
-    await page.screenshot({
-      path: resolve(framesDir, `frame-${String(index).padStart(4, '0')}.png`)
-    });
-  }
-} finally {
-  await browser.close();
-}
-
 const ffmpegArgs = [
   '-y',
   '-framerate', String(fps),
@@ -53,14 +31,49 @@ const ffmpegArgs = [
 ];
 
 try {
-  await run('ffmpeg', ffmpegArgs);
-  console.log(`Saved ${outputPath}`);
-} catch (error) {
-  console.warn('Could not create MP4 because ffmpeg is unavailable or failed.');
-  console.warn(error.message);
-  process.exitCode = 1;
+  await captureFrames();
+  await encodeVideo();
 } finally {
-  await removeFramesDir();
+  await removeFramesDir().catch((error) => {
+    console.warn(`Could not clean up temporary frames at ${framesDir}.`);
+    console.warn(error.message);
+    process.exitCode = 1;
+  });
+}
+
+async function captureFrames() {
+  await mkdir(framesDir, { recursive: true });
+
+  const browser = await chromium.launch();
+  const page = await browser.newPage({
+    viewport: { width, height },
+    deviceScaleFactor: 1
+  });
+
+  try {
+    await page.goto(pathToFileURL(htmlPath).href, { waitUntil: 'networkidle' });
+
+    for (let index = 0; index < frameCount; index += 1) {
+      const ms = Math.round((index / fps) * 1000);
+      await page.evaluate((time) => window.__setDemoTime(time), ms);
+      await page.screenshot({
+        path: resolve(framesDir, `frame-${String(index).padStart(4, '0')}.png`)
+      });
+    }
+  } finally {
+    await browser.close();
+  }
+}
+
+async function encodeVideo() {
+  try {
+    await run('ffmpeg', ffmpegArgs);
+    console.log(`Saved ${outputPath}`);
+  } catch (error) {
+    console.warn('Could not create MP4 because ffmpeg is unavailable or failed.');
+    console.warn(error.message);
+    process.exitCode = 1;
+  }
 }
 
 async function run(command, args) {
