@@ -144,14 +144,15 @@ flowchart LR
     Interceptor --> Spel["SpEL identity resolver"]
     Interceptor --> Cost["CostEstimator"]
     Cost --> Decision["GuardrailDecisionEngine"]
-    Decision --> Store["UsageStore"]
-    Decision --> Allow{"Budget OK?"}
-    Allow -->|Yes| Proceed["Proceed with method call"]
-    Allow -->|No| Action["WARN / BLOCK / FALLBACK"]
+    Store["UsageStore"] --> Decision
+    Decision --> Allow{"Decision"}
+    Allow -->|ALLOW / WARN / FALLBACK| Proceed["Proceed with method call"]
+    Allow -->|BLOCK| Block["Throw GuardrailViolationException"]
     Proceed --> Record["Save UsageRecord"]
     Record --> Store
     Store --> Usage["GET /guardrail4j/usage"]
     Store --> Summary["GET /guardrail4j/usage/summary"]
+    Store --> Health["GET /guardrail4j/health"]
 ```
 
 Flow:
@@ -160,8 +161,9 @@ Flow:
 2. Spring AOP intercepts the call before your method body runs.
 3. Guardrail4J resolves `userId` and `tenantId`.
 4. `CostEstimator` estimates the request cost from provider/model pricing.
-5. `GuardrailDecisionEngine` checks configured budgets.
-6. The call is allowed, warned, blocked, or marked for fallback.
+5. `GuardrailDecisionEngine` checks configured budgets against existing usage.
+6. `BLOCK` throws `GuardrailViolationException`; `ALLOW`, `WARN`, and advisory
+   `FALLBACK` proceed with the method call.
 7. Successful guarded calls are recorded in `UsageStore`.
 8. Usage data is exposed through REST monitoring endpoints.
 
