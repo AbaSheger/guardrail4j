@@ -8,9 +8,9 @@
     :root {
       color-scheme: dark;
       --bg: #07110f;
-      --panel: #0d1f1b;
-      --panel-2: #102722;
-      --border: #24443c;
+      --surface: #0c1c19;
+      --surface-2: #102722;
+      --border: #274840;
       --text: #ecfdf5;
       --muted: #9fb8af;
       --green: #38d89b;
@@ -18,7 +18,10 @@
       --red: #ff6b6b;
       --blue: #6aa8ff;
       --violet: #b59cff;
-      --shadow: 0 24px 90px rgba(0, 0, 0, 0.38);
+      --shadow: 0 28px 90px rgba(0, 0, 0, 0.42);
+      --progress: 0;
+      --cost-progress: 0;
+      --revenue-progress: 0.57;
     }
 
     * {
@@ -30,19 +33,17 @@
       min-height: 100vh;
       overflow: hidden;
       background:
-        radial-gradient(circle at 18% 12%, rgba(56, 216, 155, 0.22), transparent 28%),
-        radial-gradient(circle at 82% 20%, rgba(106, 168, 255, 0.18), transparent 30%),
-        linear-gradient(135deg, #07110f 0%, #0b1716 54%, #08110f 100%);
+        radial-gradient(circle at 14% 12%, rgba(56, 216, 155, 0.22), transparent 26%),
+        radial-gradient(circle at 84% 20%, rgba(106, 168, 255, 0.18), transparent 30%),
+        linear-gradient(135deg, #07110f 0%, #0a1715 48%, #08110f 100%);
       color: var(--text);
       font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
 
     .stage {
-      position: relative;
       width: 100vw;
       height: 100vh;
-      padding: clamp(34px, 5vw, 72px);
-      isolation: isolate;
+      padding: clamp(30px, 4.8vw, 64px);
     }
 
     .frame {
@@ -54,7 +55,7 @@
       overflow: hidden;
       border: 1px solid rgba(159, 184, 175, 0.22);
       border-radius: 28px;
-      background: rgba(7, 17, 15, 0.72);
+      background: rgba(7, 17, 15, 0.76);
       box-shadow: var(--shadow);
       backdrop-filter: blur(12px);
     }
@@ -65,7 +66,7 @@
       align-items: center;
       justify-content: space-between;
       gap: 24px;
-      padding: 28px 34px;
+      padding: 26px 34px;
       z-index: 2;
     }
 
@@ -74,7 +75,7 @@
       align-items: center;
       gap: 14px;
       font-size: 20px;
-      font-weight: 800;
+      font-weight: 850;
     }
 
     .mark {
@@ -96,7 +97,7 @@
       padding: 9px 15px;
       color: var(--muted);
       font-size: 14px;
-      font-weight: 650;
+      font-weight: 700;
     }
 
     .content {
@@ -109,10 +110,10 @@
       inset: 0;
       display: grid;
       place-items: center;
-      padding: 24px 58px;
+      padding: 20px 56px;
       opacity: 0;
-      transform: translateY(26px) scale(0.985);
-      transition: opacity 420ms ease, transform 420ms ease;
+      transform: translateY(28px) scale(0.985);
+      transition: opacity 480ms ease, transform 480ms ease;
     }
 
     .scene.active {
@@ -124,64 +125,245 @@
       transition: none;
     }
 
+    .panel {
+      width: min(930px, 100%);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      background: linear-gradient(180deg, rgba(16, 39, 34, 0.97), rgba(8, 21, 19, 0.97));
+      box-shadow: 0 18px 70px rgba(0, 0, 0, 0.34);
+      overflow: hidden;
+    }
+
+    .panel-body {
+      padding: clamp(34px, 5vw, 58px);
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 18px 22px;
+      border-bottom: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 16px;
+      font-weight: 780;
+    }
+
     .hero {
-      max-width: 860px;
+      width: min(880px, 100%);
       text-align: center;
     }
 
-    h1 {
+    .eyebrow {
+      margin: 0 0 18px;
+      color: var(--green);
+      font-size: clamp(17px, 2vw, 25px);
+      font-weight: 850;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    h1,
+    h2 {
       margin: 0;
-      font-size: clamp(56px, 8vw, 118px);
-      line-height: 0.92;
       letter-spacing: 0;
     }
 
+    h1 {
+      font-size: clamp(54px, 7.8vw, 104px);
+      line-height: 0.96;
+      font-weight: 950;
+    }
+
+    h2 {
+      font-size: clamp(40px, 5.2vw, 70px);
+      line-height: 1;
+      font-weight: 930;
+    }
+
     .subtitle {
-      margin: 28px auto 0;
+      margin: 24px auto 0;
       max-width: 760px;
       color: var(--muted);
-      font-size: clamp(24px, 3vw, 38px);
+      font-size: clamp(22px, 2.8vw, 34px);
       line-height: 1.2;
-      font-weight: 650;
+      font-weight: 700;
     }
 
     .accent {
       color: var(--green);
     }
 
-    .code-card,
-    .api-grid,
-    .summary-card,
-    .final-card,
-    .money-card,
-    .margin-card,
-    .guard-card {
-      width: min(920px, 100%);
-      border: 1px solid var(--border);
-      border-radius: 18px;
-      background: linear-gradient(180deg, rgba(16, 39, 34, 0.96), rgba(9, 22, 20, 0.96));
-      box-shadow: 0 18px 70px rgba(0, 0, 0, 0.34);
-      overflow: hidden;
+    .money-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 22px;
     }
 
-    .card-header {
+    .money-box {
+      min-height: 220px;
+      padding: 30px;
+      border: 1px solid rgba(159, 184, 175, 0.23);
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.035);
+    }
+
+    .label {
+      color: var(--muted);
+      font-size: 17px;
+      font-weight: 850;
+      text-transform: uppercase;
+    }
+
+    .amount {
+      margin-top: 18px;
+      font-size: clamp(58px, 7.2vw, 100px);
+      line-height: 1;
+      font-weight: 950;
+    }
+
+    .amount.revenue {
+      color: var(--green);
+    }
+
+    .amount.cost,
+    .amount.loss,
+    .red {
+      color: var(--red);
+    }
+
+    .meter {
+      height: 18px;
+      margin-top: 28px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: rgba(159, 184, 175, 0.16);
+    }
+
+    .meter span {
+      display: block;
+      width: 100%;
+      height: 100%;
+      border-radius: inherit;
+      transform-origin: left center;
+    }
+
+    .revenue-bar span {
+      background: linear-gradient(90deg, var(--green), #9af2ca);
+      transform: scaleX(var(--revenue-progress));
+    }
+
+    .cost-bar span {
+      background: linear-gradient(90deg, var(--amber), var(--red));
+      transform: scaleX(var(--cost-progress));
+    }
+
+    .meter-note {
       display: flex;
-      align-items: center;
       justify-content: space-between;
-      padding: 18px 22px;
-      border-bottom: 1px solid var(--border);
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 760;
+    }
+
+    .drivers {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+      margin-top: 30px;
+    }
+
+    .driver {
+      padding: 20px;
+      border: 1px solid rgba(159, 184, 175, 0.22);
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.035);
+      color: var(--text);
+      font-size: clamp(20px, 2.2vw, 28px);
+      font-weight: 820;
+    }
+
+    .calculation {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr auto 1fr;
+      align-items: center;
+      gap: 16px;
+      padding: 42px;
+    }
+
+    .calc-box {
+      display: grid;
+      place-items: center;
+      min-height: 145px;
+      border: 1px solid rgba(159, 184, 175, 0.22);
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.035);
+      text-align: center;
+    }
+
+    .calc-box strong {
+      font-size: clamp(44px, 5.6vw, 76px);
+      line-height: 1;
+    }
+
+    .calc-box span {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 15px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .operator {
+      color: var(--muted);
+      font-size: clamp(30px, 4vw, 48px);
+      font-weight: 900;
+    }
+
+    .flow-card {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr auto 1fr;
+      align-items: center;
+      gap: 16px;
+      padding: 40px;
+    }
+
+    .flow-node {
+      min-height: 150px;
+      padding: 24px;
+      border: 1px solid rgba(159, 184, 175, 0.22);
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.035);
+    }
+
+    .flow-node h3 {
+      margin: 0;
+      font-size: clamp(22px, 2.6vw, 34px);
+      line-height: 1.05;
+    }
+
+    .flow-node p {
+      margin: 14px 0 0;
       color: var(--muted);
       font-size: 16px;
-      font-weight: 750;
+      line-height: 1.35;
+      font-weight: 650;
+    }
+
+    .arrow {
+      color: var(--blue);
+      font-size: 34px;
+      font-weight: 900;
     }
 
     pre {
       margin: 0;
-      padding: 28px;
-      overflow: hidden;
+      padding: 30px;
       color: #d6f8e8;
       font-family: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
-      font-size: clamp(22px, 2.45vw, 33px);
+      font-size: clamp(19px, 2.1vw, 28px);
       line-height: 1.45;
       white-space: pre-wrap;
     }
@@ -198,123 +380,10 @@
       color: var(--amber);
     }
 
-    .api-grid {
-      display: grid;
-      grid-template-columns: 1fr;
-    }
-
     .method {
       color: var(--green);
       font-family: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
       font-weight: 900;
-    }
-
-    .path {
-      color: var(--blue);
-      font-family: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
-      font-weight: 850;
-    }
-
-    .summary-card pre {
-      font-size: clamp(20px, 2.2vw, 29px);
-    }
-
-    .money-card {
-      padding: clamp(34px, 5vw, 62px);
-      text-align: center;
-    }
-
-    .eyebrow {
-      margin: 0 0 18px;
-      color: var(--muted);
-      font-size: clamp(18px, 2.1vw, 28px);
-      font-weight: 800;
-      text-transform: uppercase;
-    }
-
-    .big-number {
-      margin: 0;
-      color: var(--green);
-      font-size: clamp(86px, 12vw, 160px);
-      line-height: 0.9;
-      font-weight: 950;
-    }
-
-    .big-number.cost,
-    .negative {
-      color: var(--red);
-    }
-
-    .money-copy {
-      margin: 24px auto 0;
-      max-width: 720px;
-      color: var(--text);
-      font-size: clamp(26px, 3.3vw, 46px);
-      line-height: 1.12;
-      font-weight: 850;
-    }
-
-    .metric-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 18px;
-      padding: 28px;
-    }
-
-    .metric {
-      min-height: 170px;
-      border: 1px solid rgba(159, 184, 175, 0.23);
-      border-radius: 16px;
-      background: rgba(255, 255, 255, 0.035);
-      padding: 28px;
-    }
-
-    .metric-label {
-      color: var(--muted);
-      font-size: 18px;
-      font-weight: 800;
-      text-transform: uppercase;
-    }
-
-    .metric-value {
-      margin-top: 18px;
-      font-size: clamp(48px, 6vw, 86px);
-      line-height: 1;
-      font-weight: 950;
-    }
-
-    .guard-card {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 0;
-    }
-
-    .guard-copy {
-      display: grid;
-      align-content: center;
-      gap: 18px;
-      padding: clamp(32px, 4vw, 54px);
-      border-right: 1px solid var(--border);
-    }
-
-    .guard-copy h2 {
-      margin: 0;
-      font-size: clamp(34px, 4.3vw, 58px);
-      line-height: 1;
-      letter-spacing: 0;
-    }
-
-    .guard-copy p {
-      margin: 0;
-      color: var(--muted);
-      font-size: clamp(20px, 2.2vw, 30px);
-      line-height: 1.2;
-      font-weight: 700;
-    }
-
-    .guard-card pre {
-      align-self: center;
-      font-size: clamp(19px, 2vw, 27px);
     }
 
     .decision-row {
@@ -327,40 +396,46 @@
     .decision {
       display: grid;
       place-items: center;
-      min-height: 104px;
+      min-height: 112px;
       border: 1px solid rgba(159, 184, 175, 0.23);
       border-radius: 14px;
       background: rgba(255, 255, 255, 0.035);
-      font-size: clamp(24px, 3vw, 42px);
-      font-weight: 900;
+      font-size: clamp(24px, 3vw, 40px);
+      font-weight: 930;
     }
 
-    .decision.allow {
+    .allow {
       color: var(--green);
     }
 
-    .decision.warn {
+    .warn {
       color: var(--amber);
     }
 
-    .decision.block {
+    .block {
       color: var(--red);
     }
 
-    .decision.fallback {
+    .fallback {
       color: var(--blue);
     }
 
     .repo {
-      padding: 0 30px 34px;
+      padding: 0 30px 30px;
       color: var(--text);
-      font-size: clamp(24px, 3vw, 38px);
-      font-weight: 800;
+      font-size: clamp(22px, 2.7vw, 36px);
+      font-weight: 850;
       text-align: center;
     }
 
+    .repo.small {
+      padding-top: 0;
+      color: var(--muted);
+      font-size: clamp(18px, 2.2vw, 28px);
+    }
+
     .progress {
-      width: 240px;
+      width: 250px;
       height: 8px;
       overflow: hidden;
       border-radius: 999px;
@@ -369,7 +444,7 @@
 
     .progress span {
       display: block;
-      width: calc(var(--progress, 0) * 100%);
+      width: calc(var(--progress) * 100%);
       height: 100%;
       border-radius: inherit;
       background: linear-gradient(90deg, var(--green), var(--blue));
@@ -378,7 +453,7 @@
     .footer {
       color: var(--muted);
       font-size: 15px;
-      font-weight: 650;
+      font-weight: 700;
     }
 
     @media (max-width: 760px) {
@@ -399,18 +474,20 @@
         padding: 16px 22px;
       }
 
+      .money-grid,
+      .drivers,
       .decision-row {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-
-      .metric-grid,
-      .guard-card {
         grid-template-columns: 1fr;
       }
 
-      .guard-copy {
-        border-right: 0;
-        border-bottom: 1px solid var(--border);
+      .calculation,
+      .flow-card {
+        grid-template-columns: 1fr;
+      }
+
+      .operator,
+      .arrow {
+        display: none;
       }
     }
   </style>
@@ -428,53 +505,136 @@
 
       <div class="content">
         <section class="scene active" data-scene="0">
-          <article class="money-card">
-            <p class="eyebrow">AI SaaS plan</p>
-            <p class="big-number">$20</p>
-            <p class="money-copy">A customer pays a fixed monthly subscription.</p>
-          </article>
+          <div class="hero">
+            <p class="eyebrow">The AI SaaS cost problem</p>
+            <h1>Your plan is fixed.<br><span class="accent">Your model bill is not.</span></h1>
+            <p class="subtitle">Guardrail4J adds budget checks before expensive LLM calls run.</p>
+          </div>
         </section>
 
         <section class="scene" data-scene="1">
-          <article class="money-card">
-            <p class="eyebrow">Uncontrolled LLM usage</p>
-            <p class="big-number cost">$35</p>
-            <p class="money-copy">One heavy user can generate more model cost than they pay you.</p>
+          <article class="panel">
+            <div class="panel-header">
+              <span>Subscription revenue</span>
+              <span class="method">fixed</span>
+            </div>
+            <div class="panel-body">
+              <div class="money-grid">
+                <div class="money-box">
+                  <div class="label">Customer pays</div>
+                  <div class="amount revenue">$20</div>
+                  <div class="meter revenue-bar"><span></span></div>
+                  <div class="meter-note"><span>monthly plan</span><span>predictable</span></div>
+                </div>
+                <div class="money-box">
+                  <div class="label">Your baseline</div>
+                  <div class="amount revenue">$20</div>
+                  <div class="meter revenue-bar"><span></span></div>
+                  <div class="meter-note"><span>before AI cost</span><span>positive</span></div>
+                </div>
+              </div>
+            </div>
           </article>
         </section>
 
         <section class="scene" data-scene="2">
-          <article class="margin-card">
-            <div class="card-header">
-              <span>Unit economics</span>
-              <span class="negative">unprofitable user</span>
+          <article class="panel">
+            <div class="panel-header">
+              <span>Model usage is variable</span>
+              <span class="red">unbounded by default</span>
             </div>
-            <div class="metric-grid">
-              <div class="metric">
-                <div class="metric-label">Revenue</div>
-                <div class="metric-value">$20</div>
-              </div>
-              <div class="metric">
-                <div class="metric-label">AI cost</div>
-                <div class="metric-value negative">-$35</div>
-              </div>
-              <div class="metric">
-                <div class="metric-label">Margin</div>
-                <div class="metric-value negative">-$15</div>
-              </div>
-              <div class="metric">
-                <div class="metric-label">Root cause</div>
-                <div class="metric-value">No limits</div>
+            <div class="panel-body">
+              <h2>Long prompts, retries, agents, heavy users.</h2>
+              <div class="drivers">
+                <div class="driver">Large documents</div>
+                <div class="driver">Long outputs</div>
+                <div class="driver">Agent loops</div>
+                <div class="driver">Scripted usage</div>
               </div>
             </div>
           </article>
         </section>
 
         <section class="scene" data-scene="3">
-          <article class="guard-card">
-            <div class="guard-copy">
-              <h2>Guard before the expensive call.</h2>
-              <p>Budget checks happen before the LLM request runs.</p>
+          <article class="panel">
+            <div class="panel-header">
+              <span>One customer</span>
+              <span class="red">cost climbs</span>
+            </div>
+            <div class="panel-body">
+              <div class="money-grid">
+                <div class="money-box">
+                  <div class="label">Revenue</div>
+                  <div class="amount revenue">$20</div>
+                  <div class="meter revenue-bar"><span></span></div>
+                  <div class="meter-note"><span>fixed plan</span><span>$20</span></div>
+                </div>
+                <div class="money-box">
+                  <div class="label">AI cost</div>
+                  <div class="amount cost" id="costAmount">$0</div>
+                  <div class="meter cost-bar"><span></span></div>
+                  <div class="meter-note"><span>model usage</span><span id="costCap">$35</span></div>
+                </div>
+              </div>
+            </div>
+          </article>
+        </section>
+
+        <section class="scene" data-scene="4">
+          <article class="panel">
+            <div class="panel-header">
+              <span>Unit economics</span>
+              <span class="red">negative margin</span>
+            </div>
+            <div class="calculation">
+              <div class="calc-box">
+                <strong class="revenue">$20</strong>
+                <span>revenue</span>
+              </div>
+              <div class="operator">-</div>
+              <div class="calc-box">
+                <strong class="red">$35</strong>
+                <span>AI cost</span>
+              </div>
+              <div class="operator">=</div>
+              <div class="calc-box">
+                <strong class="red">-$15</strong>
+                <span>margin</span>
+              </div>
+            </div>
+          </article>
+        </section>
+
+        <section class="scene" data-scene="5">
+          <article class="panel">
+            <div class="panel-header">
+              <span>Guardrail4J flow</span>
+              <span class="method">before the call</span>
+            </div>
+            <div class="flow-card">
+              <div class="flow-node">
+                <h3>Incoming request</h3>
+                <p>userId: alice<br>tenantId: acme</p>
+              </div>
+              <div class="arrow">-></div>
+              <div class="flow-node">
+                <h3>Budget check</h3>
+                <p>estimate cost, read usage, compare limits</p>
+              </div>
+              <div class="arrow">-></div>
+              <div class="flow-node">
+                <h3>Decision</h3>
+                <p>allow, warn, block, or fallback</p>
+              </div>
+            </div>
+          </article>
+        </section>
+
+        <section class="scene" data-scene="6">
+          <article class="panel">
+            <div class="panel-header">
+              <span>Spring Boot native</span>
+              <span class="method">@LLMGuarded</span>
             </div>
             <pre><span class="kw">@LLMGuarded</span>(
   userId = <span class="str">"#userId"</span>,
@@ -486,22 +646,12 @@
           </article>
         </section>
 
-        <section class="scene" data-scene="4">
-          <article class="summary-card">
-            <div class="card-header">
-              <span>Spring Boot configuration</span>
-              <span class="method">guardrail4j</span>
+        <section class="scene" data-scene="7">
+          <article class="panel">
+            <div class="panel-header">
+              <span>When limits are reached</span>
+              <span class="method">GuardrailDecision</span>
             </div>
-            <pre>guardrail4j:
-  dailyBudgetUsd: <span class="num">5.00</span>
-  monthlyBudgetUsd: <span class="num">50.00</span>
-  perUserDailyBudgetUsd: <span class="num">1.00</span>
-  perTenantMonthlyBudgetUsd: <span class="num">15.00</span></pre>
-          </article>
-        </section>
-
-        <section class="scene" data-scene="5">
-          <article class="final-card">
             <div class="decision-row">
               <div class="decision allow">ALLOW</div>
               <div class="decision warn">WARN</div>
@@ -509,32 +659,47 @@
               <div class="decision fallback">FALLBACK</div>
             </div>
             <div class="repo">Guardrail4J: LLM cost guardrails for Spring Boot</div>
-            <div class="repo">github.com/AbaSheger/guardrail4j</div>
+            <div class="repo small">github.com/AbaSheger/guardrail4j</div>
           </article>
         </section>
       </div>
 
       <footer class="footer">
-        <span>Stop one user from turning AI usage into negative margin</span>
+        <span>Keep AI features inside budget before the expensive call runs</span>
         <div class="progress" aria-hidden="true"><span></span></div>
       </footer>
     </section>
   </main>
 
   <script>
-    const durationMs = 9000;
+    const durationMs = 22000;
     const scenes = Array.from(document.querySelectorAll('.scene'));
     const root = document.documentElement;
+    const costAmount = document.getElementById('costAmount');
     let startedAt = performance.now();
     let manualTime = null;
 
+    function clamp(value, min, max) {
+      return Math.max(min, Math.min(max, value));
+    }
+
     function setTime(ms) {
-      const clamped = Math.max(0, Math.min(durationMs, ms));
-      const index = Math.min(scenes.length - 1, Math.floor(clamped / (durationMs / scenes.length)));
+      const clamped = clamp(ms, 0, durationMs);
+      const sceneDuration = durationMs / scenes.length;
+      const index = Math.min(scenes.length - 1, Math.floor(clamped / sceneDuration));
+      const sceneProgress = clamp((clamped - (index * sceneDuration)) / sceneDuration, 0, 1);
+
       scenes.forEach((scene, sceneIndex) => {
         scene.classList.toggle('active', sceneIndex === index);
       });
+
+      const costProgress = index === 3 ? sceneProgress : index > 3 ? 1 : 0;
       root.style.setProperty('--progress', String(clamped / durationMs));
+      root.style.setProperty('--cost-progress', String(costProgress));
+
+      if (costAmount) {
+        costAmount.textContent = `$${Math.round(costProgress * 35)}`;
+      }
     }
 
     function frame(now) {
