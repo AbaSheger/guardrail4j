@@ -120,6 +120,10 @@
       transform: translateY(0) scale(1);
     }
 
+    .capture-mode .scene {
+      transition: none;
+    }
+
     .hero {
       max-width: 860px;
       text-align: center;
@@ -148,7 +152,10 @@
     .code-card,
     .api-grid,
     .summary-card,
-    .final-card {
+    .final-card,
+    .money-card,
+    .margin-card,
+    .guard-card {
       width: min(920px, 100%);
       border: 1px solid var(--border);
       border-radius: 18px;
@@ -210,6 +217,104 @@
 
     .summary-card pre {
       font-size: clamp(20px, 2.2vw, 29px);
+    }
+
+    .money-card {
+      padding: clamp(34px, 5vw, 62px);
+      text-align: center;
+    }
+
+    .eyebrow {
+      margin: 0 0 18px;
+      color: var(--muted);
+      font-size: clamp(18px, 2.1vw, 28px);
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .big-number {
+      margin: 0;
+      color: var(--green);
+      font-size: clamp(86px, 12vw, 160px);
+      line-height: 0.9;
+      font-weight: 950;
+    }
+
+    .big-number.cost,
+    .negative {
+      color: var(--red);
+    }
+
+    .money-copy {
+      margin: 24px auto 0;
+      max-width: 720px;
+      color: var(--text);
+      font-size: clamp(26px, 3.3vw, 46px);
+      line-height: 1.12;
+      font-weight: 850;
+    }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+      padding: 28px;
+    }
+
+    .metric {
+      min-height: 170px;
+      border: 1px solid rgba(159, 184, 175, 0.23);
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.035);
+      padding: 28px;
+    }
+
+    .metric-label {
+      color: var(--muted);
+      font-size: 18px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .metric-value {
+      margin-top: 18px;
+      font-size: clamp(48px, 6vw, 86px);
+      line-height: 1;
+      font-weight: 950;
+    }
+
+    .guard-card {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+    }
+
+    .guard-copy {
+      display: grid;
+      align-content: center;
+      gap: 18px;
+      padding: clamp(32px, 4vw, 54px);
+      border-right: 1px solid var(--border);
+    }
+
+    .guard-copy h2 {
+      margin: 0;
+      font-size: clamp(34px, 4.3vw, 58px);
+      line-height: 1;
+      letter-spacing: 0;
+    }
+
+    .guard-copy p {
+      margin: 0;
+      color: var(--muted);
+      font-size: clamp(20px, 2.2vw, 30px);
+      line-height: 1.2;
+      font-weight: 700;
+    }
+
+    .guard-card pre {
+      align-self: center;
+      font-size: clamp(19px, 2vw, 27px);
     }
 
     .decision-row {
@@ -297,6 +402,16 @@
       .decision-row {
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
+
+      .metric-grid,
+      .guard-card {
+        grid-template-columns: 1fr;
+      }
+
+      .guard-copy {
+        border-right: 0;
+        border-bottom: 1px solid var(--border);
+      }
     }
   </style>
 </head>
@@ -313,60 +428,79 @@
 
       <div class="content">
         <section class="scene active" data-scene="0">
-          <div class="hero">
-            <h1>Guardrail<span class="accent">4J</span></h1>
-            <p class="subtitle">Spring Boot starter for LLM cost guardrails</p>
-          </div>
+          <article class="money-card">
+            <p class="eyebrow">AI SaaS plan</p>
+            <p class="big-number">$20</p>
+            <p class="money-copy">A customer pays a fixed monthly subscription.</p>
+          </article>
         </section>
 
         <section class="scene" data-scene="1">
-          <article class="code-card">
-            <div class="card-header">
-              <span>Annotate an LLM method</span>
-              <span class="method">@LLMGuarded</span>
-            </div>
-            <pre><span class="kw">@LLMGuarded</span>(
-  provider = <span class="str">"openai"</span>,
-  model = <span class="str">"gpt-4o-mini"</span>,
-  userId = <span class="str">"#userId"</span>,
-  tenantId = <span class="str">"#tenantId"</span>,
-  onViolation = <span class="kw">GuardrailAction</span>.BLOCK
-)
-public String summarize(String text) { ... }</pre>
+          <article class="money-card">
+            <p class="eyebrow">Uncontrolled LLM usage</p>
+            <p class="big-number cost">$35</p>
+            <p class="money-copy">One heavy user can generate more model cost than they pay you.</p>
           </article>
         </section>
 
         <section class="scene" data-scene="2">
-          <article class="api-grid">
+          <article class="margin-card">
             <div class="card-header">
-              <span><span class="method">POST</span> <span class="path">/api/summarize</span></span>
-              <span>guarded request</span>
+              <span>Unit economics</span>
+              <span class="negative">unprofitable user</span>
             </div>
-            <pre>{
-  "text": "Summarize this launch plan...",
-  "userId": <span class="str">"alice"</span>,
-  "tenantId": <span class="str">"acme"</span>
-}</pre>
+            <div class="metric-grid">
+              <div class="metric">
+                <div class="metric-label">Revenue</div>
+                <div class="metric-value">$20</div>
+              </div>
+              <div class="metric">
+                <div class="metric-label">AI cost</div>
+                <div class="metric-value negative">-$35</div>
+              </div>
+              <div class="metric">
+                <div class="metric-label">Margin</div>
+                <div class="metric-value negative">-$15</div>
+              </div>
+              <div class="metric">
+                <div class="metric-label">Root cause</div>
+                <div class="metric-value">No limits</div>
+              </div>
+            </div>
           </article>
         </section>
 
         <section class="scene" data-scene="3">
-          <article class="summary-card">
-            <div class="card-header">
-              <span><span class="method">GET</span> <span class="path">/guardrail4j/usage/summary</span></span>
-              <span>live spend view</span>
+          <article class="guard-card">
+            <div class="guard-copy">
+              <h2>Guard before the expensive call.</h2>
+              <p>Budget checks happen before the LLM request runs.</p>
             </div>
-            <pre>{
-  "totalCalls": <span class="num">1</span>,
-  "totalEstimatedCostUsd": <span class="num">0.0006</span>,
-  "byUser": { "alice": { "calls": <span class="num">1</span> } },
-  "byTenant": { "acme": { "calls": <span class="num">1</span> } },
-  "decision": <span class="str">"ALLOW"</span>
-}</pre>
+            <pre><span class="kw">@LLMGuarded</span>(
+  userId = <span class="str">"#userId"</span>,
+  tenantId = <span class="str">"#tenantId"</span>,
+  estimatedInputTokens = <span class="num">2000</span>,
+  estimatedOutputTokens = <span class="num">500</span>,
+  onViolation = <span class="kw">GuardrailAction</span>.BLOCK
+)</pre>
           </article>
         </section>
 
         <section class="scene" data-scene="4">
+          <article class="summary-card">
+            <div class="card-header">
+              <span>Spring Boot configuration</span>
+              <span class="method">guardrail4j</span>
+            </div>
+            <pre>guardrail4j:
+  dailyBudgetUsd: <span class="num">5.00</span>
+  monthlyBudgetUsd: <span class="num">50.00</span>
+  perUserDailyBudgetUsd: <span class="num">1.00</span>
+  perTenantMonthlyBudgetUsd: <span class="num">15.00</span></pre>
+          </article>
+        </section>
+
+        <section class="scene" data-scene="5">
           <article class="final-card">
             <div class="decision-row">
               <div class="decision allow">ALLOW</div>
@@ -374,13 +508,14 @@ public String summarize(String text) { ... }</pre>
               <div class="decision block">BLOCK</div>
               <div class="decision fallback">FALLBACK</div>
             </div>
+            <div class="repo">Guardrail4J: LLM cost guardrails for Spring Boot</div>
             <div class="repo">github.com/AbaSheger/guardrail4j</div>
           </article>
         </section>
       </div>
 
       <footer class="footer">
-        <span>LLM budget checks before the call runs</span>
+        <span>Stop one user from turning AI usage into negative margin</span>
         <div class="progress" aria-hidden="true"><span></span></div>
       </footer>
     </section>
@@ -411,11 +546,13 @@ public String summarize(String text) { ... }</pre>
 
     window.__setDemoTime = (ms) => {
       manualTime = ms;
+      document.body.classList.add('capture-mode');
       setTime(ms);
     };
 
     window.__playDemo = () => {
       manualTime = null;
+      document.body.classList.remove('capture-mode');
       startedAt = performance.now();
     };
 
